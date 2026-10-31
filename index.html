@@ -1,0 +1,1219 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Skyfence 3v3 無人機足球</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;700;800&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: full-bleed 3D arena; HUD pinned to the four corners like a broadcast overlay; setup is a two-column sheet laid over the dimmed arena. */
+:root{
+  --bg:#0a0e13;
+  --panel:rgba(11,16,23,.86);
+  --panel-solid:#101720;
+  --line:#243140;
+  --text:#e8edf3;
+  --muted:#8796a8;
+  --red:#ff3d52;
+  --blue:#2e8bff;
+  --amber:#ffb627;
+  --ok:#3ddc84;
+  --f-display:"Saira Condensed","Arial Narrow","Noto Sans TC",sans-serif;
+  --f-body:"Noto Sans TC",system-ui,-apple-system,"Microsoft JhengHei",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+  color-scheme:dark;
+}
+html,body{height:100%}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--text);font-family:var(--f-body);overflow:hidden;line-height:1.5}
+#stage{position:fixed;inset:0}
+#stage canvas{display:block;width:100%;height:100%}
+
+/* ---------- HUD ---------- */
+#hud{position:fixed;inset:0;pointer-events:none;
+  padding-top:calc(10px + env(safe-area-inset-top,0px));
+  padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:grid;grid-template-rows:auto 1fr auto;}
+#top{display:flex;flex-direction:column;align-items:center;gap:6px}
+#board{display:grid;grid-template-columns:minmax(64px,auto) 56px auto 56px minmax(64px,auto);align-items:stretch;
+  background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden;font-family:var(--f-display);
+  font-variant-numeric:tabular-nums}
+.tm{display:flex;flex-direction:column;justify-content:center;padding:4px 12px;letter-spacing:.08em;font-weight:700;font-size:15px}
+.tm small{font-family:var(--f-body);font-weight:500;letter-spacing:0;font-size:11px;color:var(--muted)}
+.tm.red{border-left:4px solid var(--red)} .tm.blue{border-right:4px solid var(--blue);text-align:right}
+.gl{display:grid;place-items:center;font-size:40px;font-weight:800;line-height:1}
+.gl.red{color:var(--red)} .gl.blue{color:var(--blue)}
+.mid{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 14px;border-inline:1px solid var(--line);min-width:112px}
+#clock{font-size:30px;font-weight:700;line-height:1.05}
+#clock.paused{color:var(--amber)}
+#setlbl{font-size:12px;letter-spacing:.14em;color:var(--muted)}
+#sets{display:flex;gap:4px;margin-top:3px}
+#sets i{width:22px;height:5px;border-radius:2px;background:transparent;outline:1px solid var(--line)}
+#chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;min-height:24px}
+.chip{font-size:12px;padding:2px 10px;border-radius:99px;background:var(--panel);border:1px solid var(--amber);color:var(--amber);font-weight:500}
+#toast{font-size:13px;color:var(--text);background:var(--panel);border:1px solid var(--line);padding:3px 12px;border-radius:6px;opacity:0;transition:opacity .25s}
+#toast.on{opacity:1}
+#center{display:grid;place-items:center;text-align:center}
+#banner{font-family:var(--f-display);font-weight:800;font-size:clamp(34px,7vw,76px);letter-spacing:.06em;line-height:1;
+  text-shadow:0 4px 24px rgba(0,0,0,.6);opacity:0;transform:scale(.96);transition:opacity .2s,transform .2s}
+#banner.on{opacity:1;transform:none}
+#banner small{display:block;font-family:var(--f-body);font-weight:500;font-size:clamp(14px,2.2vw,20px);letter-spacing:0;margin-top:10px;color:var(--text)}
+#bottom{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.pane{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;color:var(--muted)}
+#inp{display:flex;gap:10px;align-items:center}
+#inp b{color:var(--text);font-weight:500}
+#inp .meta{display:flex;flex-direction:column;gap:1px;min-width:0}
+#sticks{width:150px;height:70px;display:block}
+#mini{width:240px;height:120px;display:block;max-width:100%}
+#keys{font-size:11.5px;line-height:1.7}
+#keys kbd{font-family:var(--f-mono);font-size:10.5px;padding:0 5px;border:1px solid var(--line);border-radius:3px;color:var(--text);background:#0d131b}
+@media (max-width:700px){#keys{display:none} #mini{width:180px;height:90px} .gl{font-size:30px} #clock{font-size:24px} .tm small{display:none}}
+
+/* ---------- Menu ---------- */
+#menu{position:fixed;inset:0;overflow:auto;background:rgba(6,9,13,.78);backdrop-filter:blur(5px);
+  padding-block:calc(24px + env(safe-area-inset-top,0px)) calc(28px + env(safe-area-inset-bottom,0px));
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.sheet{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:18px}
+.head{grid-column:1/-1;display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.brand{font-family:var(--f-display);font-weight:800;font-size:clamp(40px,6vw,64px);letter-spacing:.04em;line-height:.9;text-wrap:balance}
+.brand span{color:var(--red)} .brand em{font-style:normal;color:var(--blue)}
+.tag{color:var(--muted);font-size:14px;max-width:46ch}
+.spec{font-family:var(--f-mono);font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:6px 10px;background:var(--panel-solid)}
+.card{background:var(--panel-solid);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.card h2{margin:0;font-family:var(--f-display);font-size:20px;letter-spacing:.1em;font-weight:700;text-transform:uppercase}
+.card h2 small{font-family:var(--f-body);font-size:13px;letter-spacing:0;color:var(--muted);font-weight:400;margin-left:8px}
+.row{display:grid;grid-template-columns:96px minmax(0,1fr);gap:10px;align-items:center}
+.row > span{font-size:13px;color:var(--muted)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg label{position:relative}
+.seg input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.seg span{display:inline-block;padding:5px 12px;border-radius:6px;border:1px solid var(--line);font-size:13px;cursor:pointer;background:#0c121a;color:var(--text);white-space:nowrap}
+.seg input:checked + span{border-color:var(--amber);background:rgba(255,182,39,.12);color:var(--amber)}
+.seg input:focus-visible + span{outline:2px solid var(--amber);outline-offset:2px}
+.seg .r input:checked + span{border-color:var(--red);background:rgba(255,61,82,.14);color:#ff8a97}
+.seg .b input:checked + span{border-color:var(--blue);background:rgba(46,139,255,.14);color:#8cc0ff}
+.btns{display:flex;gap:10px;flex-wrap:wrap}
+button{font-family:var(--f-body);font-size:14px;border-radius:7px;border:1px solid var(--line);background:#141d28;color:var(--text);padding:8px 14px;cursor:pointer}
+button:hover{border-color:#3a4a5e}
+button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+button.primary{background:var(--amber);border-color:var(--amber);color:#1b1306;font-weight:700;font-size:16px;padding:10px 22px}
+button.primary:hover{filter:brightness(1.08)}
+button:disabled{opacity:.45;cursor:not-allowed}
+.note{font-size:12.5px;color:var(--muted)}
+.warn{font-size:13px;border:1px solid var(--amber);background:rgba(255,182,39,.08);color:#ffd27a;border-radius:7px;padding:8px 10px}
+.okc{color:var(--ok)}
+#serStat,#gpStat{font-size:13px}
+.raw{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.raw div{background:#0c121a;border:1px solid var(--line);border-radius:6px;padding:6px 8px;font-family:var(--f-mono);font-size:12px;font-variant-numeric:tabular-nums;min-width:0}
+.raw div b{display:block;font-family:var(--f-display);font-size:13px;letter-spacing:.1em;color:var(--muted);font-weight:700}
+.raw div i{display:block;height:4px;background:#1b2633;border-radius:2px;margin-top:4px;position:relative;overflow:hidden}
+.raw div i s{position:absolute;top:0;bottom:0;background:var(--amber);width:3px;margin-left:-1px}
+.raw div em{display:block;font-style:normal;font-size:10.5px;color:var(--muted)}
+table.map{width:100%;border-collapse:collapse;font-size:13px}
+table.map td,table.map th{padding:4px 6px;border-bottom:1px solid var(--line);text-align:left}
+table.map th{font-weight:500;color:var(--muted);font-size:12px}
+table.map select{background:#0c121a;color:var(--text);border:1px solid var(--line);border-radius:5px;padding:2px 4px;font-family:var(--f-mono);font-size:12px}
+.bar{height:6px;background:#1b2633;border-radius:3px;position:relative;min-width:60px}
+.bar s{position:absolute;top:0;bottom:0;left:50%;background:var(--amber);border-radius:3px}
+details{border-top:1px solid var(--line);padding-top:10px}
+details summary{cursor:pointer;font-size:14px;font-weight:500}
+details ol,details ul{margin:8px 0 0;padding-left:20px;font-size:13px;color:#c6d0dc;max-width:70ch}
+details li{margin-bottom:4px}
+.foot{grid-column:1/-1;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+@media (max-width:860px){.sheet{grid-template-columns:minmax(0,1fr)} .row{grid-template-columns:minmax(0,1fr)} .raw{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (prefers-reduced-motion:reduce){#banner,#toast{transition:none}}
+#err{position:fixed;inset:auto 16px 16px;color:#ffd27a}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+
+<div id="hud">
+  <div id="top">
+    <div id="board">
+      <div class="tm red">RED<small>紅隊 · 局 <span id="swR">0</span></small></div>
+      <div class="gl red" id="gR">0</div>
+      <div class="mid"><div id="clock">3:00</div><div id="setlbl">SET 1 / 3</div><div id="sets"><i></i><i></i><i></i></div></div>
+      <div class="gl blue" id="gB">0</div>
+      <div class="tm blue">BLUE<small>藍隊 · 局 <span id="swB">0</span></small></div>
+    </div>
+    <div id="chips"></div>
+    <div id="toast"></div>
+  </div>
+  <div id="center"><div id="banner"></div></div>
+  <div id="bottom">
+    <div class="pane" id="inp">
+      <canvas id="sticks" width="300" height="140" aria-label="搖桿位置"></canvas>
+      <div class="meta">
+        <div>操控：<b id="hudCtl">—</b></div>
+        <div>裝置：<b id="hudSrc">鍵盤</b></div>
+        <div>飛行：<b id="hudFly">定高輔助</b> · 視角：<b id="hudCam">追尾</b></div>
+      </div>
+    </div>
+    <div class="pane" id="keys">
+      <kbd>W</kbd><kbd>S</kbd> 升降油門　<kbd>A</kbd><kbd>D</kbd> 偏航　<kbd>↑</kbd><kbd>↓</kbd> 前後　<kbd>←</kbd><kbd>→</kbd> 左右平移<br>
+      <kbd>Tab</kbd> 換機　<kbd>C</kbd> 視角　<kbd>F</kbd> 飛行模式　<kbd>P</kbd> 暫停　<kbd>Esc</kbd> 設定
+    </div>
+    <div class="pane"><canvas id="mini" width="480" height="240" aria-label="俯視小地圖"></canvas></div>
+  </div>
+</div>
+
+<div id="menu">
+  <div class="sheet">
+    <div class="head">
+      <div>
+        <div class="brand">SKY<span>FENCE</span> <em>3v3</em></div>
+        <div class="tag">依 FAI F9A 無人機足球規則建構的 3D 模擬賽場。三局制、每局三分鐘，只有 Striker 能得分。</div>
+      </div>
+      <div class="spec" id="specLine"></div>
+    </div>
+
+    <section class="card" aria-labelledby="h-match">
+      <h2 id="h-match">比賽設定</h2>
+      <div class="row"><span>賽場規格</span><div class="seg" id="seg-arena">
+        <label><input type="radio" name="arena" id="ar-B" value="B"><span>F9A-B · 20 cm 球</span></label>
+        <label><input type="radio" name="arena" id="ar-A" value="A"><span>F9A-A · 40 cm 球</span></label></div></div>
+      <div class="row"><span>我的隊伍</span><div class="seg">
+        <label class="r"><input type="radio" name="team" id="tm-0" value="0"><span>紅隊（左側）</span></label>
+        <label class="b"><input type="radio" name="team" id="tm-1" value="1"><span>藍隊（右側）</span></label></div></div>
+      <div class="row"><span>我的位置</span><div class="seg">
+        <label><input type="radio" name="role" id="rl-striker" value="striker"><span>Striker 前鋒</span></label>
+        <label><input type="radio" name="role" id="rl-guide" value="guide"><span>Guide 導引</span></label>
+        <label><input type="radio" name="role" id="rl-keeper" value="keeper"><span>Keeper 守門</span></label>
+        <label><input type="radio" name="role" id="rl-spectate" value="spectate"><span>觀戰</span></label></div></div>
+      <div class="row"><span>每局時間</span><div class="seg">
+        <label><input type="radio" name="setsec" id="ss-180" value="180"><span>3:00 正式</span></label>
+        <label><input type="radio" name="setsec" id="ss-90" value="90"><span>1:30</span></label>
+        <label><input type="radio" name="setsec" id="ss-60" value="60"><span>1:00 練習</span></label></div></div>
+      <div class="row"><span>AI 強度</span><div class="seg">
+        <label><input type="radio" name="diff" id="df-0" value="0"><span>入門</span></label>
+        <label><input type="radio" name="diff" id="df-1" value="1"><span>校隊</span></label>
+        <label><input type="radio" name="diff" id="df-2" value="2"><span>國手</span></label></div></div>
+      <div class="row"><span>飛行模式</span><div class="seg">
+        <label><input type="radio" name="flight" id="fl-assist" value="assist"><span>定高輔助</span></label>
+        <label><input type="radio" name="flight" id="fl-manual" value="manual"><span>手動油門（自穩）</span></label></div></div>
+      <p class="note">定高輔助：油門桿控制升降速度，放開就停在原高度，適合鍵盤與 PS2 回中搖桿。手動油門：油門桿中間為懸停推力，傾斜時要自己補油門，最接近實機 Angle 模式。</p>
+      <details>
+        <summary>本模擬採用的比賽規則（FAI F9A）</summary>
+        <ol>
+          <li>每隊 3 架上場：1 架 Striker 與 2 架防守／導引。Striker 的尾燈用對方隊色，並掛著飄帶。</li>
+          <li>比賽分三局，每局 3 分鐘；局內進球多者勝該局，先贏兩局者勝。三局後無人贏兩局，進行黃金進球延長賽。</li>
+          <li>開局：所有球機放在己方底線起飛區，裁判宣布「Arm your quads」，約 3 到 5 秒後鳴聲開賽。鳴聲前離地＝提早起飛，判對方罰球。</li>
+          <li>得分：只有 Striker 整顆球機朝對方底線方向完整穿過對方球門環才算。其他球機穿過對方球門不計分，也不罰。</li>
+          <li>進球後，得分隊全員要先回到己方半場（以中線為界）才能再次得分；未回就進球，該球不算且判對方罰球。</li>
+          <li>Striker 可以穿過或停在自己的球門防守；其他隊員穿過或停在己方球門內，判對方罰球。</li>
+          <li>罰球：由獲判隊的 Striker 對一名防守者，10 秒內完成；罰球時間不計入該局時間。</li>
+          <li>球門環：F9A-B 外徑 70 cm、內徑 40 cm、距底線 1 m；F9A-A 外徑 100 cm、內徑 60 cm、距底線 1.5 m。環高為本模擬的設定值（FAI 只規定懸掛於籠頂）。</li>
+        </ol>
+      </details>
+    </section>
+
+    <section class="card" aria-labelledby="h-ctl">
+      <h2 id="h-ctl">操控裝置<small>鍵盤一直可用，可與手把同時操作</small></h2>
+      <div class="seg">
+        <label><input type="radio" name="input" id="in-keyboard" value="keyboard"><span>只用鍵盤</span></label>
+        <label><input type="radio" name="input" id="in-serial" value="serial"><span>Arduino PS2（序列埠）</span></label>
+        <label><input type="radio" name="input" id="in-gamepad" value="gamepad"><span>USB 遊戲手把／遙控器</span></label>
+      </div>
+      <div id="serBox" class="card" style="padding:12px;gap:10px;background:#0c121a">
+        <div class="btns"><button id="btnSer">連接 Arduino</button><button id="btnCal">把目前位置設為中心</button>
+          <button id="btnM2">Mode 2（左手油門）</button><button id="btnM1">Mode 1（右手油門）</button></div>
+        <div id="serStat" class="note">尚未連接。上傳 PS2_DroneSoccer.ino 到 UNO 後，按「連接 Arduino」選擇 COM 埠（115200 baud）。</div>
+        <div id="serWarn" class="warn" hidden></div>
+      </div>
+      <div id="gpBox" class="note" hidden><span id="gpStat">接上 USB 手把或 RadioMaster（USB 搖桿模式）後，按任一鍵讓瀏覽器偵測。</span></div>
+      <div class="raw" id="raw"></div>
+      <table class="map" aria-label="搖桿軸向對應">
+        <thead><tr><th>功能</th><th>軸</th><th>反向</th><th>輸出</th></tr></thead>
+        <tbody id="mapBody"></tbody>
+      </table>
+      <details>
+        <summary>PS2 搖桿 X 軸沒有反應？</summary>
+        <ul>
+          <li>上方「原始值」欄位會顯示每軸 0–255 的數值與最小／最大範圍。左右推動搖桿時 LX、RX 範圍若一直沒變，就是手把端沒送出 X 軸資料，網頁無法補救。</li>
+          <li>「模式」若不是 0x73 或 0x79，代表手把不在類比模式：按 ANALOG 鍵讓紅燈亮。</li>
+          <li>接收器電源改接 3.3V；副廠手把若有 MODE 鍵，按一次再測。</li>
+          <li>仍無效：把 PS2X_lib.h 裡 AVR 區段的 CTRL_CLK 改成 10、CTRL_BYTE_DELAY 改成 15，重新上傳。</li>
+          <li>Arduino 序列埠監控視窗輸入 d 可開啟診斷模式，會直接標出哪一軸從未變化。</li>
+        </ul>
+      </details>
+    </section>
+
+    <div class="foot">
+      <button class="primary" id="btnStart">開始比賽</button>
+      <button id="btnRestart" hidden>重新開始比賽</button>
+      <span class="note" id="footNote">按 Esc 隨時回到這裡。</span>
+    </div>
+  </div>
+</div>
+<div id="err" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(() => {
+'use strict';
+if (!window.THREE) { const e = document.getElementById('err'); e.hidden = false; e.textContent = '3D 函式庫載入失敗，請檢查網路後重新整理。'; return; }
+
+const $ = s => document.querySelector(s);
+const V3 = THREE.Vector3;
+const DEG = Math.PI / 180, G = 9.81, MAX_TILT = 35 * DEG, YAW_MAX = 200 * DEG;
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const lerp = (a, b, t) => a + (b - a) * t;
+const wrapA = a => { while (a > Math.PI) a -= 2 * Math.PI; while (a < -Math.PI) a += 2 * Math.PI; return a; };
+
+/* ---------------- Arena specs (FAI F9A, Volume F9 2026) ---------------- */
+const ARENAS = {
+  B: { key:'B', label:'F9A-B', L:6,  W:3, H:3, ballR:0.10, ringOuter:0.70, ringInner:0.40, ringThick:0.10, ringIn:1.0, ringY:1.85, startDepth:1.0, vmax:4.0, climb:2.0, impact:1.6, net:0.25 },
+  A: { key:'A', label:'F9A-A', L:14, W:7, H:5, ballR:0.20, ringOuter:1.00, ringInner:0.60, ringThick:0.20, ringIn:1.5, ringY:3.0,  startDepth:1.5, vmax:7.0, climb:3.0, impact:2.6, net:0.5 },
+};
+for (const a of Object.values(ARENAS)) {
+  a.Rm = (a.ringOuter + a.ringInner) / 4;        // torus centre radius
+  a.rt = (a.ringOuter - a.ringInner) / 4;        // torus tube radius
+  a.drag = G * Math.tan(MAX_TILT) / a.vmax;
+  a.gx = a.L / 2 - a.ringIn;
+  a.cs = a.ballR / 0.1;
+}
+const TEAMS = [
+  { name:'紅隊', key:'RED', hex:0xff3d52, css:'#ff3d52' },
+  { name:'藍隊', key:'BLUE', hex:0x2e8bff, css:'#2e8bff' },
+];
+const ROLES = ['striker', 'guide', 'keeper'];
+const ROLE_NAME = { striker:'Striker', guide:'Guide', keeper:'Keeper' };
+// rear LED unit: Striker shows the opposing team colour (FAI B.1.5)
+const REAR = [[0x2e8bff, 0xffd23f, 0x3ddc84], [0xff3d52, 0xf2f2f2, 0xc77dff]];
+const DIFF = [{ spd:0.62, react:0.75 }, { spd:0.8, react:1 }, { spd:0.95, react:1.35 }];
+const dirOf = t => t === 0 ? 1 : -1;  // red attacks +x
+
+/* ---------------- Settings ---------------- */
+const DEF = { arena:'B', team:0, role:'striker', setSec:180, diff:1, flight:'assist', input:'keyboard',
+  deadzone:0.06, expo:0.25, center:[128,128,128,128],
+  map:{ thr:{a:1,inv:true}, yaw:{a:0,inv:false}, pitch:{a:3,inv:true}, roll:{a:2,inv:false} } };
+let S = JSON.parse(JSON.stringify(DEF));
+try { const s = JSON.parse(localStorage.getItem('skyfence3v3') || 'null'); if (s) S = Object.assign(S, s); } catch (e) {}
+const save = () => { try { localStorage.setItem('skyfence3v3', JSON.stringify(S)); } catch (e) {} };
+
+/* ---------------- Renderer ---------------- */
+const renderer = new THREE.WebGLRenderer({ antialias:true });
+renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+$('#stage').appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0a0e13);
+scene.fog = new THREE.Fog(0x0a0e13, 18, 70);
+const camera = new THREE.PerspectiveCamera(62, 1, 0.02, 200);
+function resize() {
+  const w = innerWidth, h = innerHeight;
+  renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+}
+addEventListener('resize', resize); resize();
+
+scene.add(new THREE.HemisphereLight(0xc4d6ff, 0x161b22, 0.6));
+const sun = new THREE.DirectionalLight(0xffffff, 0.85);
+sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
+scene.add(sun, sun.target);
+
+let A = ARENAS[S.arena];
+let arenaGroup = null;
+const rings = [];
+
+function fieldTexture(A) {
+  const c = document.createElement('canvas'); c.width = 1024; c.height = 512;
+  const g = c.getContext('2d'); const px = c.width / A.L;
+  g.fillStyle = '#16523b'; g.fillRect(0, 0, c.width, c.height);
+  const stripe = A.L / 12;
+  for (let i = 0; i < 12; i += 2) { g.fillStyle = 'rgba(255,255,255,0.035)'; g.fillRect(i * stripe * px, 0, stripe * px, c.height); }
+  const lw = Math.max(3, 0.03 * A.cs * px);
+  g.strokeStyle = '#f2f5f7'; g.lineWidth = lw;
+  g.strokeRect(lw / 2, lw / 2, c.width - lw, c.height - lw);
+  g.beginPath(); g.moveTo(c.width / 2, 0); g.lineTo(c.width / 2, c.height); g.stroke();
+  g.beginPath(); g.arc(c.width / 2, c.height / 2, 0.12 * A.cs * px, 0, Math.PI * 2); g.fillStyle = '#f2f5f7'; g.fill();
+  const startLen = A.ballR * 12;
+  [['rgba(255,61,82,', 0], ['rgba(46,139,255,', 1]].forEach(([col, t]) => {
+    const x0 = t === 0 ? 0 : (A.L - A.startDepth) * px;
+    const y0 = (A.W - startLen) / 2 * px;
+    g.fillStyle = col + '0.22)'; g.fillRect(x0, y0, A.startDepth * px, startLen * px);
+    g.strokeStyle = col + '0.95)'; g.lineWidth = lw; g.strokeRect(x0 + lw / 2, y0, A.startDepth * px - lw, startLen * px);
+    // dashed mark under the goal ring
+    const gx = (t === 0 ? A.ringIn : A.L - A.ringIn) * px;
+    g.setLineDash([lw * 3, lw * 3]); g.beginPath(); g.moveTo(gx, (A.W / 2 - A.ringOuter / 2) * px); g.lineTo(gx, (A.W / 2 + A.ringOuter / 2) * px); g.stroke(); g.setLineDash([]);
+  });
+  const tex = new THREE.CanvasTexture(c);
+  tex.encoding = THREE.sRGBEncoding; tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  return tex;
+}
+
+function netLines(A) {
+  const p = [], s = A.net, L = A.L, W = A.W, H = A.H, hl = L / 2, hw = W / 2;
+  const add = (a, b) => p.push(a[0], a[1], a[2], b[0], b[1], b[2]);
+  for (let y = 0; y <= H + 1e-6; y += s) { add([-hl, y, -hw], [hl, y, -hw]); add([-hl, y, hw], [hl, y, hw]); add([-hl, y, -hw], [-hl, y, hw]); add([hl, y, -hw], [hl, y, hw]); }
+  for (let x = -hl; x <= hl + 1e-6; x += s) { add([x, 0, -hw], [x, H, -hw]); add([x, 0, hw], [x, H, hw]); add([x, H, -hw], [x, H, hw]); }
+  for (let z = -hw; z <= hw + 1e-6; z += s) { add([-hl, 0, z], [-hl, H, z]); add([hl, 0, z], [hl, H, z]); add([-hl, H, z], [hl, H, z]); }
+  const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(p, 3));
+  return new THREE.LineSegments(geo, new THREE.LineBasicMaterial({ color:0xa8bccf, transparent:true, opacity:0.11, depthWrite:false }));
+}
+
+function buildArena() {
+  if (arenaGroup) { scene.remove(arenaGroup); arenaGroup.traverse(o => { if (o.geometry) o.geometry.dispose(); }); }
+  rings.length = 0;
+  A = ARENAS[S.arena];
+  const grp = new THREE.Group(); arenaGroup = grp;
+  const hall = new THREE.Mesh(new THREE.PlaneGeometry(160, 160), new THREE.MeshStandardMaterial({ color:0x121820, roughness:0.95 }));
+  hall.rotation.x = -Math.PI / 2; hall.position.y = -0.002; hall.receiveShadow = true; grp.add(hall);
+  const grid = new THREE.GridHelper(80, 80, 0x1c2531, 0x161d27); grid.position.y = -0.001; grp.add(grid);
+  const field = new THREE.Mesh(new THREE.PlaneGeometry(A.L, A.W), new THREE.MeshStandardMaterial({ map:fieldTexture(A), roughness:0.9 }));
+  field.rotation.x = -Math.PI / 2; field.receiveShadow = true; grp.add(field);
+  grp.add(netLines(A));
+  // frame
+  const frameMat = new THREE.MeshStandardMaterial({ color:0x2a3542, roughness:0.6, metalness:0.4 });
+  const pw = 0.05 * A.cs;
+  const post = (x, z) => { const m = new THREE.Mesh(new THREE.BoxGeometry(pw, A.H, pw), frameMat); m.position.set(x, A.H / 2, z); m.castShadow = true; grp.add(m); };
+  for (let i = 0; i <= 4; i++) { const x = -A.L / 2 + i * A.L / 4; post(x, -A.W / 2); post(x, A.W / 2); }
+  const rail = (len, x, z, rotY) => { const m = new THREE.Mesh(new THREE.BoxGeometry(len, pw, pw), frameMat); m.position.set(x, A.H, z); m.rotation.y = rotY; grp.add(m); };
+  rail(A.L, 0, -A.W / 2, 0); rail(A.L, 0, A.W / 2, 0); rail(A.W, -A.L / 2, 0, Math.PI / 2); rail(A.W, A.L / 2, 0, Math.PI / 2);
+  // goal rings (red ring = defended by red)
+  for (let t = 0; t < 2; t++) {
+    const x = t === 0 ? -A.gx : A.gx;
+    const mat = new THREE.MeshStandardMaterial({ color:TEAMS[t].hex, emissive:TEAMS[t].hex, emissiveIntensity:0.55, roughness:0.4 });
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(A.Rm, A.rt, 18, 64), mat);
+    ring.rotation.y = Math.PI / 2; ring.position.set(x, A.ringY, 0); ring.castShadow = true; grp.add(ring);
+    const top = A.ringY + A.ringOuter / 2;
+    const cg = new THREE.BufferGeometry().setFromPoints([new V3(x, top, -0.12 * A.cs), new V3(x, A.H, -0.4 * A.cs), new V3(x, top, 0.12 * A.cs), new V3(x, A.H, 0.4 * A.cs)]);
+    grp.add(new THREE.LineSegments(cg, new THREE.LineBasicMaterial({ color:0x8b97a6 })));
+    rings.push({ team:t, x, y:A.ringY, mesh:ring, mat });
+  }
+  // pilot areas outside the short sides
+  for (let t = 0; t < 2; t++) {
+    const D = dirOf(t), x = -D * (A.L / 2 + 1.1 * A.cs);
+    const pad = new THREE.Mesh(new THREE.BoxGeometry(1.6 * A.cs, 0.04, A.W * 0.8), new THREE.MeshStandardMaterial({ color:0x1a2230, roughness:0.8 }));
+    pad.position.set(x, 0.02, 0); pad.receiveShadow = true; grp.add(pad);
+    const edge = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.05, A.W * 0.8), new THREE.MeshBasicMaterial({ color:TEAMS[t].hex }));
+    edge.position.set(x + D * 0.8 * A.cs, 0.03, 0); grp.add(edge);
+    for (let i = 0; i < 3; i++) {
+      const p = new THREE.Group();
+      const body = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.2, 1.1, 10), new THREE.MeshStandardMaterial({ color:TEAMS[t].hex, roughness:0.7 }));
+      body.position.y = 0.95; const legs = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.13, 0.42, 8), new THREE.MeshStandardMaterial({ color:0x20262f }));
+      legs.position.y = 0.21; const head = new THREE.Mesh(new THREE.SphereGeometry(0.13, 12, 10), new THREE.MeshStandardMaterial({ color:0xc9a98a }));
+      head.position.y = 1.63; p.add(body, legs, head); body.castShadow = true;
+      p.position.set(x - D * 0.2, 0, (i - 1) * 0.75 * Math.min(1.4, A.cs)); grp.add(p);
+    }
+  }
+  // overhead light bars
+  for (let i = -1; i <= 1; i++) {
+    const bar = new THREE.Mesh(new THREE.BoxGeometry(A.L * 0.7, 0.05, 0.12), new THREE.MeshBasicMaterial({ color:0xdfe9ff }));
+    bar.position.set(0, A.H + 2.2 * A.cs, i * A.W * 0.35); grp.add(bar);
+  }
+  scene.add(grp);
+  const sc = sun.shadow.camera, m = Math.max(A.L, A.W) * 0.75;
+  sc.left = -m; sc.right = m; sc.top = m; sc.bottom = -m; sc.near = 0.5; sc.far = A.H * 6 + 20; sc.updateProjectionMatrix();
+  sun.position.set(A.L * 0.25, A.H * 4 + 4, A.W * 0.8); sun.target.position.set(0, 0, 0);
+  scene.fog.near = Math.max(A.L, 10) * 1.6; scene.fog.far = scene.fog.near * 3.5;
+  $('#specLine').textContent = `${A.label} · 飛行區 ${A.L}×${A.W} m · 籠高 ${A.H} m · 球門 外徑 ${A.ringOuter * 100} / 內徑 ${A.ringInner * 100} cm · 距底線 ${A.ringIn} m`;
+}
+
+/* ---------------- Drone balls ---------------- */
+class Drone {
+  constructor(team, idx) {
+    this.team = team; this.idx = idx; this.role = ROLES[idx];
+    this.pos = new V3(); this.prev = new V3(); this.vel = new V3();
+    this.yaw = 0; this.pitch = 0; this.roll = 0; this.yawRate = 0;
+    this.input = { thr:0, yaw:0, pitch:0, roll:0 };
+    this.armed = false; this.ai = true; this.frozen = false;
+    this.stun = 0; this.wobP = 0; this.wobR = 0; this.dwell = 0;
+    this.aiState = 'approach'; this.aiT = 0; this.aiOff = new V3(); this.prop = 0;
+    this.build();
+  }
+  build() {
+    const r = A.ballR, root = new THREE.Group(), body = new THREE.Group();
+    const shell = new THREE.Mesh(new THREE.SphereGeometry(r, 20, 14), new THREE.MeshStandardMaterial({ color:0x1d2630, transparent:true, opacity:0.22, roughness:0.5, depthWrite:false }));
+    shell.castShadow = true;
+    const lat = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(r, 1)), new THREE.LineBasicMaterial({ color:0xd6dee8 }));
+    const strip = new THREE.Mesh(new THREE.TorusGeometry(r * 0.96, r * 0.05, 6, 40), new THREE.MeshBasicMaterial({ color:TEAMS[this.team].hex }));
+    strip.rotation.x = Math.PI / 2;
+    const armMat = new THREE.MeshStandardMaterial({ color:0x111418, roughness:0.5 });
+    for (const a of [Math.PI / 4, -Math.PI / 4]) { const arm = new THREE.Mesh(new THREE.BoxGeometry(r * 1.55, r * 0.06, r * 0.1), armMat); arm.rotation.y = a; body.add(arm); }
+    this.props = [];
+    const discMat = new THREE.MeshBasicMaterial({ color:0xffffff, transparent:true, opacity:0.14, side:THREE.DoubleSide, depthWrite:false });
+    const bladeMat = new THREE.MeshBasicMaterial({ color:0x2b3138 });
+    for (const [x, z] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) {
+      const pr = new THREE.Group(); pr.position.set(x * r * 0.5, r * 0.08, z * r * 0.5);
+      const disc = new THREE.Mesh(new THREE.CircleGeometry(r * 0.3, 20), discMat); disc.rotation.x = -Math.PI / 2;
+      const blade = new THREE.Mesh(new THREE.BoxGeometry(r * 0.58, r * 0.02, r * 0.07), bladeMat);
+      pr.add(disc, blade); body.add(pr); this.props.push(blade);
+    }
+    const rear = new THREE.Mesh(new THREE.BoxGeometry(r * 0.12, r * 0.2, r * 0.42), new THREE.MeshBasicMaterial({ color:REAR[this.team][this.idx] }));
+    rear.position.set(-r * 0.83, r * 0.05, 0);
+    const nose = new THREE.Mesh(new THREE.BoxGeometry(r * 0.1, r * 0.1, r * 0.1), new THREE.MeshBasicMaterial({ color:0xffffff }));
+    nose.position.set(r * 0.85, 0, 0);
+    body.add(shell, lat, strip, rear, nose);
+    root.add(body);
+    if (this.role === 'striker') {
+      const rib = new THREE.Mesh(new THREE.PlaneGeometry(r * 0.28, r * 1.9), new THREE.MeshBasicMaterial({ color:REAR[this.team][0], side:THREE.DoubleSide }));
+      rib.geometry.translate(0, -r * 0.95, 0);
+      const pivot = new THREE.Group(); pivot.position.y = -r * 0.92; pivot.add(rib); root.add(pivot); this.ribbon = pivot;
+    }
+    const mk = new THREE.Mesh(new THREE.ConeGeometry(r * 0.32, r * 0.55, 4), new THREE.MeshBasicMaterial({ color:0xffffff }));
+    mk.rotation.x = Math.PI; mk.position.y = r * 2.1; mk.visible = false; root.add(mk); this.marker = mk;
+    this.root = root; this.body = body;
+    body.rotation.order = 'YZX';
+    scene.add(root);
+  }
+  dispose() { scene.remove(this.root); this.root.traverse(o => { if (o.geometry) o.geometry.dispose(); }); }
+}
+
+let drones = [];
+const byTeam = t => drones.filter(d => d.team === t);
+const roleOf = (t, role) => drones.find(d => d.team === t && d.role === role);
+
+/* ---------------- Physics ---------------- */
+const _e = new THREE.Euler(0, 0, 0, 'YZX'), _up = new V3(), _n = new V3(), _q = new V3();
+
+function impact(d, s) {
+  if (s > A.impact) { d.stun = 0.3; d.wobP = (Math.random() - 0.5) * s * 3; d.wobR = (Math.random() - 0.5) * s * 3; }
+}
+
+function stepDrone(d, dt) {
+  if (d.frozen) return;
+  const r = A.ballR, inp = d.input;
+  const k = 1 - Math.exp(-dt / 0.07);
+  d.pitch += (inp.pitch * MAX_TILT - d.pitch) * k;
+  d.roll += (inp.roll * MAX_TILT - d.roll) * k;
+  if (d.stun > 0) { d.stun -= dt; d.pitch += d.wobP * dt; d.roll += d.wobR * dt; }
+  d.yawRate += (inp.yaw * YAW_MAX - d.yawRate) * (1 - Math.exp(-dt / 0.08));
+  d.yaw = wrapA(d.yaw - d.yawRate * dt);
+  _e.set(d.roll, d.yaw, -d.pitch, 'YZX');
+  _up.set(0, 1, 0).applyEuler(_e);
+  let T = 0;
+  if (d.armed) {
+    if (d.ai || S.flight === 'assist') {
+      const vy = inp.thr * A.climb;
+      T = (1 + (vy - d.vel.y) * 3.2 / G + A.drag * 1.2 * d.vel.y / G) / Math.max(0.55, _up.y);
+    } else {
+      T = 1 + inp.thr * 0.85;
+    }
+    T = clamp(T, 0, 2.3);
+  }
+  const v = d.vel, p = d.pos;
+  v.x += (_up.x * T * G - A.drag * v.x) * dt;
+  v.y += (_up.y * T * G - G - A.drag * 1.2 * v.y) * dt;
+  v.z += (_up.z * T * G - A.drag * v.z) * dt;
+  p.addScaledVector(v, dt);
+  // floor, ceiling, net walls
+  if (p.y < r) { p.y = r; if (v.y < 0) { impact(d, -v.y); v.y = -v.y * 0.2; } v.x *= 1 - 6 * dt; v.z *= 1 - 6 * dt; }
+  const top = A.H - r, hl = A.L / 2 - r, hw = A.W / 2 - r;
+  if (p.y > top) { p.y = top; if (v.y > 0) { impact(d, v.y); v.y *= -0.3; } }
+  if (p.x > hl) { p.x = hl; if (v.x > 0) { impact(d, v.x); v.x *= -0.35; } }
+  if (p.x < -hl) { p.x = -hl; if (v.x < 0) { impact(d, -v.x); v.x *= -0.35; } }
+  if (p.z > hw) { p.z = hw; if (v.z > 0) { impact(d, v.z); v.z *= -0.35; } }
+  if (p.z < -hw) { p.z = -hw; if (v.z < 0) { impact(d, -v.z); v.z *= -0.35; } }
+  // goal ring torus collision
+  for (const R of rings) {
+    const dy = p.y - R.y, dz = p.z, rho = Math.hypot(dy, dz);
+    if (rho < 1e-6) continue;
+    _q.set(R.x, R.y + dy / rho * A.Rm, dz / rho * A.Rm);
+    _n.subVectors(p, _q); const dist = _n.length(), minD = A.rt + r;
+    if (dist < minD && dist > 1e-6) {
+      _n.multiplyScalar(1 / dist);
+      p.copy(_q).addScaledVector(_n, minD);
+      const vn = v.dot(_n);
+      if (vn < 0) { v.addScaledVector(_n, -1.4 * vn); impact(d, -vn); }
+    }
+  }
+}
+
+function collidePairs() {
+  const r2 = A.ballR * 2;
+  for (let i = 0; i < drones.length; i++) for (let j = i + 1; j < drones.length; j++) {
+    const a = drones[i], b = drones[j];
+    if (a.frozen || b.frozen) continue;
+    _n.subVectors(b.pos, a.pos); const d = _n.length();
+    if (d < r2 && d > 1e-6) {
+      _n.multiplyScalar(1 / d); const o = (r2 - d) / 2;
+      a.pos.addScaledVector(_n, -o); b.pos.addScaledVector(_n, o);
+      const rel = _q.subVectors(b.vel, a.vel).dot(_n);
+      if (rel < 0) {
+        const jimp = -(1 + 0.7) * rel / 2;
+        a.vel.addScaledVector(_n, -jimp); b.vel.addScaledVector(_n, jimp);
+        impact(a, -rel * 0.8); impact(b, -rel * 0.8);
+      }
+    }
+  }
+}
+
+/* ---------------- Match state ---------------- */
+const M = { phase:'menu', setNo:1, clock:180, goals:[0,0], setWins:[0,0], results:[], mustReturn:[false,false],
+  t:0, armDelay:4, penalty:null, ot:false, wait:null, paused:false, started:false, cam:0, user:null, userSaved:null };
+
+function makeTeams() {
+  drones.forEach(d => d.dispose()); drones = [];
+  for (let t = 0; t < 2; t++) for (let i = 0; i < 3; i++) drones.push(new Drone(t, i));
+  setUser(S.role === 'spectate' ? null : roleOf(S.team, S.role));
+}
+function setUser(d) {
+  if (M.user) { M.user.ai = true; M.user.marker.visible = false; }
+  M.user = d;
+  if (d) { d.ai = false; d.marker.visible = true; }
+  $('#hudCtl').textContent = d ? `${TEAMS[d.team].name} ${ROLE_NAME[d.role]}` : '觀戰（全 AI）';
+}
+
+function placeAtStart(d) {
+  const D = dirOf(d.team);
+  d.pos.set(-D * (A.L / 2 - A.startDepth / 2), A.ballR, (d.idx - 1) * A.ballR * 4);
+  if (d.team === 1) d.pos.z = -d.pos.z;
+  d.prev.copy(d.pos); d.vel.set(0, 0, 0);
+  d.yaw = D > 0 ? 0 : Math.PI; d.pitch = d.roll = d.yawRate = 0; d.stun = 0; d.dwell = 0;
+  d.frozen = false; d.aiState = 'approach'; d.aiT = 0;
+  newOffset(d); d.trk = null;
+  d.input.thr = d.input.yaw = d.input.pitch = d.input.roll = 0;
+}
+
+function startArming() {
+  drones.forEach(placeAtStart);
+  M.mustReturn = [false, false];
+  M.phase = 'arming'; M.t = 0; M.armDelay = 3 + Math.random() * 2;
+  drones.forEach(d => d.armed = (d === M.user));
+  banner('ARM YOUR QUADS', `${M.ot ? '延長賽・黃金進球' : '第 ' + M.setNo + ' 局'}・等待開賽鳴聲，提早離地判罰球`, 0, '#ffb627');
+  beep(660, 0.12, 'sine', 0.06);
+}
+
+function newMatch() {
+  Object.assign(M, { setNo:1, clock:S.setSec, goals:[0,0], setWins:[0,0], results:[], ot:false, penalty:null, wait:null, paused:false, started:true, userSaved:null });
+  buildArena(); makeTeams();
+  if (!M.camChosen) { M.cam = M.user ? 0 : 2; $('#hudCam').textContent = CAMS[M.cam]; }
+  startArming();
+}
+
+function scoreGoal(team) {
+  M.goals[team]++;
+  M.mustReturn[team] = true;
+  flashRing(1 - team);
+  beepSeq([[880, 0.1], [1175, 0.1], [1568, 0.25]]);
+  if (M.ot) {
+    M.results.push({ g:M.goals.slice(), w:team }); M.setWins[team]++;
+    banner('GOLDEN GOAL', `${TEAMS[team].name} Striker 延長賽進球`, 0, TEAMS[team].css);
+    toWait(3.5, () => endMatch(team)); disarmAll();
+    return;
+  }
+  banner('GOAL', `${TEAMS[team].name} Striker 得分・全員回到己方半場後才能再得分`, 2200, TEAMS[team].css);
+}
+
+function penaltyAgainst(team, reason) {
+  if (M.phase === 'penaltySetup' || M.phase === 'penalty' || M.phase === 'wait') return;
+  const a = 1 - team;
+  beepSeq([[2100, 0.12], [1700, 0.12], [2100, 0.3]], 'triangle');
+  const striker = roleOf(a, 'striker');
+  let def = roleOf(team, 'keeper');
+  if (M.user && M.user.team === team && M.user.role !== 'striker') def = M.user;
+  M.penalty = { a, striker, def, reason };
+  M.userSaved = M.user;
+  if (M.user) { if (M.user.team === a) setUser(striker); else setUser(def); }
+  const D = dirOf(a), ring = rings[1 - a];
+  drones.forEach(d => { placeAtStart(d); d.armed = false; });
+  striker.pos.set(0, A.ringY, 0); striker.yaw = D > 0 ? 0 : Math.PI;
+  def.pos.set(ring.x - D * A.L * 0.12, A.ringY, 0); def.yaw = D > 0 ? Math.PI : 0;
+  for (const d of [striker, def]) { d.prev.copy(d.pos); d.vel.set(0, 0, 0); d.frozen = true; d.armed = true; }
+  M.phase = 'penaltySetup'; M.t = 0;
+  banner('PENALTY', `判${TEAMS[team].name}：${reason}・${TEAMS[a].name} Striker 罰球 10 秒`, 0, '#ffb627');
+}
+
+function penaltyEnd(scored) {
+  const a = M.penalty.a;
+  if (scored) { M.goals[a]++; flashRing(1 - a); beepSeq([[880, 0.1], [1175, 0.1], [1568, 0.25]]); banner('GOAL', `${TEAMS[a].name} 罰球得分`, 0, TEAMS[a].css); }
+  else banner('MISSED', '罰球未進', 0, '#ffb627');
+  M.penalty = null;
+  if (M.userSaved !== undefined) setUser(M.userSaved);
+  disarmAll();
+  if (scored && M.ot) { M.results.push({ g:M.goals.slice(), w:a }); M.setWins[a]++; toWait(3, () => endMatch(a)); return; }
+  toWait(2.6, startArming);
+}
+
+function endSet() {
+  const [r, b] = M.goals, w = r > b ? 0 : b > r ? 1 : -1;
+  M.results.push({ g:[r, b], w });
+  if (w >= 0) M.setWins[w]++;
+  beep(1200, 0.6, 'sine', 0.07);
+  banner(M.ot ? '延長賽結束' : `第 ${M.setNo} 局結束`, w < 0 ? `${r} : ${b}・本局平手` : `${r} : ${b}・${TEAMS[w].name}拿下本局`, 0, w < 0 ? '#e8edf3' : TEAMS[w].css);
+  disarmAll();
+  toWait(4, nextSet);
+}
+function nextSet() {
+  if (M.setWins[0] >= 2 || M.setWins[1] >= 2) return endMatch(M.setWins[0] >= 2 ? 0 : 1);
+  if (M.setNo >= 3) { if (M.ot) return endMatch(-1); M.ot = true; }
+  M.setNo++; M.goals = [0, 0]; M.clock = S.setSec;
+  startArming();
+}
+function endMatch(w) {
+  M.phase = 'over'; disarmAll();
+  const sets = M.results.map(s => `${s.g[0]}:${s.g[1]}`).join('　');
+  banner(w < 0 ? 'DRAW' : `${TEAMS[w].key} WINS`, `${w < 0 ? '雙方平手' : TEAMS[w].name + '獲勝'}・各局比分 ${sets}・按 Enter 再來一場`, 0, w < 0 ? '#e8edf3' : TEAMS[w].css);
+}
+function toWait(t, fn) { M.phase = 'wait'; M.wait = { t, fn }; }
+function disarmAll() { drones.forEach(d => { d.armed = false; d.frozen = false; }); }
+
+/* ---------------- Rules: ring crossings ---------------- */
+let lastToast = 0;
+function checkRules(d, dt) {
+  for (const R of rings) {
+    const a = d.prev.x - R.x, b = d.pos.x - R.x;
+    if ((a < 0 && b >= 0) || (a > 0 && b <= 0)) {
+      const t = a / (a - b);
+      const y = lerp(d.prev.y, d.pos.y, t) - R.y, z = lerp(d.prev.z, d.pos.z, t);
+      if (Math.hypot(y, z) < A.ringInner / 2) onCross(d, R, Math.sign(b - a));
+    }
+  }
+  // non-striker hovering inside own goal ring
+  if (M.phase === 'play' && d.role !== 'striker') {
+    const R = rings[d.team];
+    const inside = Math.abs(d.pos.x - R.x) < A.ringThick / 2 + A.ballR * 0.5 && Math.hypot(d.pos.y - R.y, d.pos.z) < A.ringInner / 2;
+    d.dwell = inside ? d.dwell + dt : 0;
+    if (d.dwell > 0.8) penaltyAgainst(d.team, `${ROLE_NAME[d.role]} 停在己方球門內`);
+  }
+}
+function onCross(d, R, sgn) {
+  if (d.team !== R.team) {
+    if (sgn !== dirOf(d.team)) return;
+    if (d.role !== 'striker') { if (performance.now() - lastToast > 1500) toast(`${TEAMS[d.team].name} ${ROLE_NAME[d.role]} 穿過球門，非 Striker 不計分`); return; }
+    if (M.phase === 'penalty') { if (M.penalty && M.penalty.a === d.team) penaltyEnd(true); return; }
+    if (M.phase !== 'play') return;
+    if (M.mustReturn[d.team]) { toast('得分無效：得分隊尚未全員回到己方半場'); penaltyAgainst(d.team, '進球後未全員回到己方半場'); return; }
+    scoreGoal(d.team);
+  } else {
+    if (d.role === 'striker') return;
+    if (M.phase === 'play') penaltyAgainst(d.team, `${ROLE_NAME[d.role]} 穿越己方球門`);
+  }
+}
+function flashRing(i) { const R = rings[i]; if (!R) return; R.flash = 1.2; }
+
+/* ---------------- AI ---------------- */
+const _v = new V3(), _t = new V3();
+function steer(d, target, speed, gain = 2.4) {
+  _v.subVectors(target, d.pos); const dist = _v.length();
+  if (dist < 1e-4) return _v.set(0, 0, 0);
+  return _v.multiplyScalar(Math.min(speed, dist * gain) / dist);
+}
+function avoid(d, vDes, strength, onlyOpp) {
+  const R = A.ballR * 5;
+  for (const o of drones) {
+    if (o === d || (onlyOpp && o.team === d.team)) continue;
+    _q.subVectors(d.pos, o.pos); const dist = _q.length();
+    if (dist < R && dist > 1e-4) vDes.addScaledVector(_q, strength * (R - dist) / (R * dist) * A.vmax * 0.6);
+  }
+}
+function keepFrontOfOwnRing(d, target) {
+  const R = rings[d.team], D = dirOf(d.team);
+  const minX = R.x + D * (A.rt + A.ballR * 1.4);
+  if ((target.x - minX) * D < 0) target.x = minX;
+  if ((d.pos.x - R.x) * D < A.ballR * 1.5) { // behind or at own ring: route around the side
+    target.set(R.x + D * A.L * 0.08, R.y, d.pos.z >= 0 ? A.W * 0.32 : -A.W * 0.32);
+  }
+}
+function drive(d, vDes, faceYaw) {
+  const df = DIFF[S.diff], kp = 3.2 * df.react;
+  let ax = (vDes.x - d.vel.x) * kp + A.drag * vDes.x, az = (vDes.z - d.vel.z) * kp + A.drag * vDes.z;
+  const amax = G * Math.tan(MAX_TILT * 0.95), m = Math.hypot(ax, az);
+  if (m > amax) { ax *= amax / m; az *= amax / m; }
+  const c = Math.cos(d.yaw), s = Math.sin(d.yaw);
+  const aF = ax * c - az * s, aR = ax * s + az * c;
+  d.input.pitch = clamp(Math.atan2(aF, G) / MAX_TILT, -1, 1);
+  d.input.roll = clamp(Math.atan2(aR, G) / MAX_TILT, -1, 1);
+  d.input.thr = clamp(vDes.y / A.climb, -1, 1);
+  if (faceYaw != null) d.input.yaw = clamp(-wrapA(faceYaw - d.yaw) * 1.6, -1, 1); else d.input.yaw = 0;
+}
+const yawTo = (vx, vz) => Math.atan2(-vz, vx);
+function newOffset(d) { const a = Math.random() * Math.PI * 2, m = A.ringOuter * (0.3 + Math.random() * 0.5); d.aiOff.set(0, Math.sin(a) * m, Math.cos(a) * m); }
+
+function aiThink(d, dt) {
+  const zero = () => { d.input.thr = d.input.yaw = d.input.pitch = d.input.roll = 0; };
+  if (!d.armed || d.frozen || (M.phase !== 'play' && M.phase !== 'penalty')) return zero();
+  if (M.phase === 'penalty' && M.penalty && d !== M.penalty.striker && d !== M.penalty.def) return zero();
+  const T = d.team, D = dirOf(T), df = DIFF[S.diff], spd = A.vmax * df.spd;
+  const oppRing = rings[1 - T], ownRing = rings[T];
+  const oppStriker = roleOf(1 - T, 'striker'), oppKeeper = roleOf(1 - T, 'keeper');
+  d.aiT += dt;
+  let vDes, face = null;
+
+  const returnHome = () => { _t.set(-D * A.L * 0.2, A.ringY * 0.85, clamp(d.pos.z, -A.W * 0.3, A.W * 0.3)); vDes = steer(d, _t, spd).clone(); avoid(d, vDes, 0.6, true); face = yawTo(-D, 0); };
+
+  if (M.phase === 'play' && M.mustReturn[T] && (d.pos.x * D) > -A.ballR * 2) returnHome();
+  else if (d.role === 'striker') {
+    const front = oppRing.x - D * A.L * 0.15;
+    const ax = (d.pos.x - oppRing.x) * D;
+    const lat = Math.hypot(d.pos.y - oppRing.y, d.pos.z);
+    if (d.aiState === 'shoot') {
+      const ss = spd * 0.6;
+      vDes = _v.set(D * ss, (oppRing.y - d.pos.y) * 4, (0 - d.pos.z) * 4).clone();
+      face = yawTo(D, 0);
+      if (ax > A.ballR * 4 || d.aiT > 2.8 || (ax < -A.ballR * 2.5 && lat > A.ringInner * (0.65 + 0.1 * df.react))) { d.aiState = 'approach'; d.aiT = 0; newOffset(d); }
+    } else if (ax > -A.ballR * 3) {
+      // behind or inside the plane: loop round the side of the ring
+      _t.set(oppRing.x - D * A.L * 0.12, oppRing.y, d.pos.z >= 0 ? A.W * 0.34 : -A.W * 0.34);
+      vDes = steer(d, _t, spd).clone(); avoid(d, vDes, 0.8, false); face = yawTo(-D, 0);
+    } else {
+      _t.set(front, oppRing.y + d.aiOff.y, d.aiOff.z);
+      vDes = steer(d, _t, spd).clone();
+      if (Math.abs(d.pos.x - front) > A.ballR * 6) avoid(d, vDes, 0.7, true);
+      face = yawTo(oppRing.x - d.pos.x, -d.pos.z);
+      const ol = Math.hypot(d.pos.y - oppRing.y - d.aiOff.y, d.pos.z - d.aiOff.z);
+      const near = Math.abs(d.pos.x - front) < A.ballR * 3 && ol < A.ballR * 1.7;
+      if (!near) d.aiT = 0;
+      if (near && (Math.hypot(d.vel.y, d.vel.z) < 1.1 || d.aiT > 2.0)) { d.aiState = 'shoot'; d.aiT = 0; }
+    }
+  } else if (d.role === 'keeper' || (M.phase === 'penalty' && d === M.penalty.def)) {
+    // sit on the line between the ring centre and the opposing Striker, just in front of the ring face
+    // keeper reads the Striker with a reaction lag (shorter at higher AI strength)
+    const th0 = oppStriker || d;
+    if (!d.trk) d.trk = th0.pos.clone();
+    d.trk.lerp(th0.pos, 1 - Math.exp(-dt * 3.6 * df.react));
+    const th = { pos:d.trk };
+    const dk = A.rt + A.ballR * 1.6;
+    const gap = Math.abs(th.pos.x - ownRing.x);
+    // mirror the Striker's offset from the ring axis, blending to centre when it is far away
+    const w = clamp(1.6 - gap / (A.L * 0.25), 0.25, 1);
+    let ty = (th.pos.y - ownRing.y) * w, tz = th.pos.z * w;
+    const rad = Math.hypot(ty, tz), lim = A.ringInner * 0.45;
+    if (rad > lim) { ty *= lim / rad; tz *= lim / rad; }
+    _t.set(ownRing.x + D * dk, ownRing.y + ty, tz);
+    keepFrontOfOwnRing(d, _t);
+    vDes = steer(d, _t, spd * 1.2, 2.4 + 2.6 * df.react).clone();
+    face = yawTo(th0.pos.x - d.pos.x, th0.pos.z - d.pos.z);
+  } else { // guide
+    if (oppStriker && oppStriker.pos.x * D < A.L * 0.12) {
+      _t.copy(oppStriker.pos).addScaledVector(oppStriker.vel, 0.3);
+      _t.x -= D * A.ballR; keepFrontOfOwnRing(d, _t);
+      vDes = steer(d, _t, spd * 1.1).clone();
+      face = yawTo(oppStriker.pos.x - d.pos.x, oppStriker.pos.z - d.pos.z);
+    } else if (oppKeeper) {
+      _t.copy(oppKeeper.pos); _t.x -= D * A.ballR * 0.5;
+      vDes = steer(d, _t, spd).clone(); avoid(d, vDes, 0.5, false);
+      if (d.pos.x * D > oppRing.x * D - A.ballR * 4) vDes.x = Math.min(vDes.x * D, 0) * D; // never past the opponent ring
+      face = yawTo(D, 0);
+    } else { returnHome(); }
+  }
+  // hesitation on easy
+  if (S.diff === 0 && Math.random() < 0.02) vDes.multiplyScalar(0.3);
+  drive(d, vDes, face);
+}
+
+/* ---------------- Input devices ---------------- */
+const keys = {};
+const KB = { thr:0, yaw:0, pitch:0, roll:0 };
+const SER = { port:null, reader:null, on:false, raw:[128,128,128,128], btn:0, prevBtn:0, mode:null, last:0, min:[255,255,255,255], max:[0,0,0,0], t0:0 };
+const GP = { idx:null, axes:[], btn:[], prev:[], ok:true };
+let devAxes = [0, 0, 0, 0];
+
+addEventListener('keydown', e => {
+  const menuOpen = !$('#menu').hidden;
+  if (!menuOpen && ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Tab','Space'].includes(e.code)) e.preventDefault();
+  if (e.repeat) { keys[e.code] = true; return; }
+  keys[e.code] = true;
+  if (e.code === 'Escape') { menuOpen ? resumeFromMenu() : openMenu(); return; }
+  if (menuOpen) return;
+  if (e.code === 'KeyC') cycleCam();
+  else if (e.code === 'Tab') switchDrone(e.shiftKey ? -1 : 1);
+  else if (e.code === 'KeyF') toggleFlight();
+  else if (e.code === 'KeyP') togglePause();
+  else if (e.code === 'KeyH') $('#keys').hidden = !$('#keys').hidden;
+  else if (e.code === 'Enter' && M.phase === 'over') newMatch();
+});
+addEventListener('keyup', e => { keys[e.code] = false; });
+addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
+
+function kbUpdate(dt) {
+  const tgt = {
+    thr: (keys.KeyW ? 1 : 0) - (keys.KeyS ? 1 : 0),
+    yaw: (keys.KeyD ? 1 : 0) - (keys.KeyA ? 1 : 0),
+    pitch: (keys.ArrowUp ? 1 : 0) - (keys.ArrowDown ? 1 : 0),
+    roll: (keys.ArrowRight ? 1 : 0) - (keys.ArrowLeft ? 1 : 0),
+  };
+  for (const k in KB) {
+    const rate = tgt[k] === 0 ? 7 : 4;
+    KB[k] += clamp(tgt[k] - KB[k], -rate * dt, rate * dt);
+  }
+}
+
+function dz(v) { const z = S.deadzone; return Math.abs(v) < z ? 0 : Math.sign(v) * (Math.abs(v) - z) / (1 - z); }
+function expo(v) { return v * (1 - S.expo) + v * v * v * S.expo; }
+
+function readDevice() {
+  devAxes = [0, 0, 0, 0];
+  if (S.input === 'serial' && SER.on) {
+    devAxes = SER.raw.map((v, i) => clamp((v - S.center[i]) / 127.5, -1, 1));
+  } else if (S.input === 'gamepad') {
+    pollGamepad();
+    devAxes = GP.axes.length ? GP.axes.slice(0, 8) : [0, 0, 0, 0];
+  }
+  const out = {};
+  for (const f of ['thr', 'yaw', 'pitch', 'roll']) {
+    const m = S.map[f]; let v = devAxes[m.a] || 0; if (m.inv) v = -v;
+    v = dz(v); out[f] = f === 'thr' ? v : expo(v);
+  }
+  return out;
+}
+
+function pollGamepad() {
+  let pads = [];
+  try { pads = navigator.getGamepads ? Array.from(navigator.getGamepads()) : []; GP.ok = true; } catch (e) { GP.ok = false; }
+  const p = pads.find(x => x && x.connected);
+  if (!p) { GP.axes = []; GP.idx = null; return; }
+  GP.idx = p.index; GP.axes = Array.from(p.axes); GP.name = p.id;
+  const btn = p.buttons.map(b => b.pressed);
+  const edge = i => btn[i] && !GP.prev[i];
+  if (edge(9)) onStartButton(); if (edge(8)) switchDrone(1); if (edge(3)) cycleCam(); if (edge(2)) toggleFlight();
+  GP.prev = btn;
+}
+
+async function serialConnect() {
+  if (SER.on) return serialDisconnect();
+  if (!('serial' in navigator)) {
+    serStat('這個瀏覽器環境無法使用序列埠。請下載 drone-soccer.html，用電腦版 Chrome 或 Edge 直接開啟檔案後再連接。', true); return;
+  }
+  try {
+    const port = await navigator.serial.requestPort();
+    await port.open({ baudRate:115200 });
+    SER.port = port; SER.on = true; SER.t0 = performance.now(); SER.min = [255,255,255,255]; SER.max = [0,0,0,0];
+    $('#btnSer').textContent = '中斷連接';
+    serStat('已連接，等待手把資料…');
+    readLoop(port);
+  } catch (e) {
+    const blocked = e && (e.name === 'SecurityError' || /policy|permission/i.test(e.message || ''));
+    serStat(blocked ? '目前頁面不允許存取序列埠。請下載 drone-soccer.html，用電腦版 Chrome 或 Edge 開啟後再連接。' : `未連接：${e.message || e}`, true);
+  }
+}
+async function readLoop(port) {
+  const dec = new TextDecoderStream();
+  const closed = port.readable.pipeTo(dec.writable).catch(() => {});
+  const reader = dec.readable.getReader(); SER.reader = reader;
+  let buf = '';
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += value;
+      let i;
+      while ((i = buf.indexOf('\n')) >= 0) { parseLine(buf.slice(0, i).trim()); buf = buf.slice(i + 1); }
+      if (buf.length > 512) buf = '';
+    }
+  } catch (e) { serStat(`連線中斷：${e.message || e}`, true); }
+  try { reader.releaseLock(); } catch (e) {}
+  await closed;
+  try { await port.close(); } catch (e) {}
+  SER.on = false; $('#btnSer').textContent = '連接 Arduino';
+}
+async function serialDisconnect() {
+  try { await SER.reader.cancel(); } catch (e) {}
+  SER.on = false; serStat('已中斷連接。');
+}
+function parseLine(l) {
+  if (l.startsWith('#')) { SER.msg = l.slice(1).trim(); return; }
+  if (!l.startsWith('J,')) return;
+  const p = l.split(',');
+  if (p.length < 6) return;
+  const a = [1, 2, 3, 4].map(i => parseInt(p[i], 10));
+  if (a.some(isNaN)) return;
+  SER.raw = a; SER.last = performance.now();
+  for (let i = 0; i < 4; i++) { SER.min[i] = Math.min(SER.min[i], a[i]); SER.max[i] = Math.max(SER.max[i], a[i]); }
+  const btn = parseInt(p[5], 16) || 0;
+  SER.mode = p[6] ? parseInt(p[6], 16) : null;
+  const pressed = btn & ~SER.btn; SER.btn = btn;
+  if (pressed & 0x0008) onStartButton();
+  if (pressed & 0x0001) switchDrone(1);
+  if (pressed & 0x1000) cycleCam();
+  if (pressed & 0x8000) toggleFlight();
+}
+function serStat(t, warn) { const el = $('#serStat'); el.textContent = t; el.className = warn ? 'warn' : 'note'; }
+
+/* ---------------- Controls actions ---------------- */
+const CAMS = ['追尾', '飛手區', '轉播', 'FPV'];
+function cycleCam() { M.camChosen = true; M.cam = (M.cam + 1) % CAMS.length; $('#hudCam').textContent = CAMS[M.cam]; }
+function toggleFlight() { S.flight = S.flight === 'assist' ? 'manual' : 'assist'; save(); syncForm(); toast(S.flight === 'assist' ? '飛行模式：定高輔助' : '飛行模式：手動油門（自穩）'); }
+function switchDrone(step) {
+  if (!M.user || M.phase === 'penalty' || M.phase === 'penaltySetup') return;
+  const mates = byTeam(M.user.team); const i = mates.indexOf(M.user);
+  const nd = mates[(i + step + 3) % 3];
+  nd.armed = M.user.armed || nd.armed;
+  setUser(nd); toast(`改為操控 ${ROLE_NAME[nd.role]}`);
+}
+function togglePause() { if (!M.started) return; M.paused = !M.paused; $('#clock').classList.toggle('paused', M.paused); if (M.paused) banner('PAUSED', '按 P 繼續', 0, '#ffb627'); else banner(''); }
+function onStartButton() { if (!$('#menu').hidden) resumeFromMenu(); else if (M.phase === 'over') newMatch(); else togglePause(); }
+
+/* ---------------- HUD ---------------- */
+let bannerTimer = 0;
+function banner(text, sub, ms, color) {
+  const b = $('#banner');
+  if (!text) { b.classList.remove('on'); return; }
+  b.innerHTML = ''; const t = document.createElement('div'); t.textContent = text; t.style.color = color || '#e8edf3'; b.appendChild(t);
+  if (sub) { const s = document.createElement('small'); s.textContent = sub; b.appendChild(s); }
+  b.classList.add('on'); clearTimeout(bannerTimer);
+  if (ms) bannerTimer = setTimeout(() => b.classList.remove('on'), ms);
+}
+let toastTimer = 0;
+function toast(t) { lastToast = performance.now(); const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('on'), 2600); }
+
+const fmt = s => { s = Math.max(0, Math.ceil(s)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+let chipKey = '';
+function hudUpdate() {
+  $('#gR').textContent = M.goals[0]; $('#gB').textContent = M.goals[1];
+  $('#swR').textContent = M.setWins[0]; $('#swB').textContent = M.setWins[1];
+  const ck = $('#clock');
+  ck.textContent = M.phase === 'penalty' ? `${Math.max(0, M.t).toFixed(1)}s` : fmt(M.clock);
+  $('#setlbl').textContent = M.phase === 'penalty' || M.phase === 'penaltySetup' ? 'PENALTY SHOT' : M.ot ? 'OVERTIME' : `SET ${M.setNo} / 3`;
+  const dots = $('#sets').children;
+  for (let i = 0; i < 3; i++) {
+    const r = M.results[i];
+    dots[i].style.background = r ? (r.w < 0 ? '#8796a8' : TEAMS[r.w].css) : (i === M.setNo - 1 && !M.ot ? '#3a4a5e' : 'transparent');
+  }
+  const chips = [];
+  if (M.mustReturn[0] && M.phase === 'play') chips.push('紅隊：全員回到己方半場才能再得分');
+  if (M.mustReturn[1] && M.phase === 'play') chips.push('藍隊：全員回到己方半場才能再得分');
+  const key = chips.join('|');
+  if (key !== chipKey) { chipKey = key; const c = $('#chips'); c.innerHTML = ''; chips.forEach(t => { const s = document.createElement('span'); s.className = 'chip'; s.textContent = '⚑ ' + t; c.appendChild(s); }); }
+  $('#hudSrc').textContent = S.input === 'serial' ? (SER.on ? 'Arduino PS2' : 'Arduino（未連接）') : S.input === 'gamepad' ? (GP.idx != null ? 'USB 手把' : 'USB 手把（未偵測）') : '鍵盤';
+  $('#hudFly').textContent = S.flight === 'assist' ? '定高輔助' : '手動油門';
+}
+
+const stc = $('#sticks'), sg = stc.getContext('2d');
+function drawSticks(inp) {
+  const w = stc.width, h = stc.height; sg.clearRect(0, 0, w, h);
+  const R = h * 0.42;
+  [[w * 0.25, inp.yaw, inp.thr, '偏航/油門'], [w * 0.75, inp.roll, inp.pitch, '平移/前後']].forEach(([cx, x, y]) => {
+    const cy = h / 2;
+    sg.strokeStyle = '#2b3a4b'; sg.lineWidth = 2; sg.beginPath(); sg.arc(cx, cy, R, 0, 7); sg.stroke();
+    sg.beginPath(); sg.moveTo(cx - R, cy); sg.lineTo(cx + R, cy); sg.moveTo(cx, cy - R); sg.lineTo(cx, cy + R); sg.stroke();
+    sg.fillStyle = '#ffb627'; sg.beginPath(); sg.arc(cx + x * R * 0.85, cy - y * R * 0.85, 9, 0, 7); sg.fill();
+  });
+}
+
+const mc = $('#mini'), mg = mc.getContext('2d');
+function drawMini() {
+  const w = mc.width, h = mc.height, sx = w / A.L, sz = h / A.W;
+  mg.clearRect(0, 0, w, h);
+  mg.fillStyle = '#123f2e'; mg.fillRect(0, 0, w, h);
+  mg.strokeStyle = 'rgba(255,255,255,.7)'; mg.lineWidth = 2; mg.strokeRect(1, 1, w - 2, h - 2);
+  mg.beginPath(); mg.moveTo(w / 2, 0); mg.lineTo(w / 2, h); mg.stroke();
+  for (const R of rings) {
+    mg.strokeStyle = TEAMS[R.team].css; mg.lineWidth = 5;
+    const x = (R.x + A.L / 2) * sx; mg.beginPath(); mg.moveTo(x, (A.W / 2 - A.ringOuter / 2) * sz); mg.lineTo(x, (A.W / 2 + A.ringOuter / 2) * sz); mg.stroke();
+  }
+  for (const d of drones) {
+    const x = (d.pos.x + A.L / 2) * sx, y = (d.pos.z + A.W / 2) * sz;
+    const rad = 5 + (d.pos.y / A.H) * 7;
+    mg.fillStyle = TEAMS[d.team].css; mg.beginPath(); mg.arc(x, y, rad, 0, 7); mg.fill();
+    if (d.role === 'striker') { mg.strokeStyle = '#' + REAR[d.team][0].toString(16).padStart(6, '0'); mg.lineWidth = 3; mg.stroke(); }
+    if (d === M.user) { mg.strokeStyle = '#fff'; mg.lineWidth = 2; mg.beginPath(); mg.arc(x, y, rad + 4, 0, 7); mg.stroke(); }
+    mg.strokeStyle = 'rgba(255,255,255,.6)'; mg.lineWidth = 1.5; mg.beginPath(); mg.moveTo(x, y); mg.lineTo(x + Math.cos(d.yaw) * (rad + 6), y - Math.sin(d.yaw) * (rad + 6)); mg.stroke();
+  }
+}
+
+/* ---------------- Camera ---------------- */
+const camPos = new V3(4, 3, 6), camLook = new V3(0, 1, 0), _cl = new V3(), _cp = new V3();
+const _qq = new THREE.Quaternion(), _qOff = new THREE.Quaternion().setFromEuler(new THREE.Euler(14 * DEG, -Math.PI / 2, 0, 'YXZ'));
+function updateCamera(dt) {
+  const d = M.user || roleOf(0, 'striker');
+  if (!d) return;
+  const cs = A.cs; let fov = 62;
+  const mode = M.user ? M.cam : (M.cam === 3 ? 2 : M.cam);
+  if (mode === 3) {
+    fov = 96; drones.forEach(x => x.root.visible = true); camera.position.copy(d.pos);
+    _qq.copy(d.body.quaternion).multiply(_qOff); camera.quaternion.copy(_qq);
+    if (camera.fov !== fov) { camera.fov = fov; camera.updateProjectionMatrix(); }
+    d.root.visible = false; return;
+  }
+  drones.forEach(x => x.root.visible = true);
+  if (mode === 0) {
+    const fx = Math.cos(d.yaw), fz = -Math.sin(d.yaw);
+    _cp.set(d.pos.x - fx * 1.15 * cs, d.pos.y + 0.42 * cs, d.pos.z - fz * 1.15 * cs);
+    _cl.set(d.pos.x + fx * 0.8 * cs, d.pos.y + 0.05 * cs, d.pos.z + fz * 0.8 * cs);
+  } else if (mode === 1) {
+    const D = dirOf(d.team);
+    _cp.set(-D * (A.L / 2 + 1.0 * cs), 1.62, (d.idx - 1) * 0.75 * Math.min(1.4, cs) * (d.team ? -1 : 1));
+    _cl.copy(d.pos); fov = 58;
+  } else {
+    _cp.set(clamp(d.pos.x * 0.6, -A.L * 0.35, A.L * 0.35), A.H + 1.2 * cs, A.W / 2 + 3.4 * cs);
+    _cl.set(d.pos.x * 0.7, A.H * 0.35, d.pos.z * 0.3); fov = 55;
+  }
+  const k = 1 - Math.exp(-dt * (mode === 1 ? 10 : 6));
+  camPos.lerp(_cp, k); camLook.lerp(_cl, 1 - Math.exp(-dt * 10));
+  camera.position.copy(camPos); camera.lookAt(camLook);
+  if (Math.abs(camera.fov - fov) > 0.1) { camera.fov = lerp(camera.fov, fov, 0.2); camera.updateProjectionMatrix(); }
+}
+
+/* ---------------- Audio ---------------- */
+let actx = null;
+function audioInit() { try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === 'suspended') actx.resume(); } catch (e) { actx = null; } }
+function beep(f, dur, type = 'square', vol = 0.07, at = 0) {
+  if (!actx) return;
+  const t0 = actx.currentTime + at, o = actx.createOscillator(), g = actx.createGain();
+  o.type = type; o.frequency.value = f; g.gain.setValueAtTime(vol, t0); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  o.connect(g).connect(actx.destination); o.start(t0); o.stop(t0 + dur + 0.02);
+}
+function beepSeq(seq, type) { let t = 0; for (const [f, d] of seq) { beep(f, d, type || 'square', 0.06, t); t += d * 0.9; } }
+
+/* ---------------- Main loop ---------------- */
+const STEP = 1 / 120;
+let acc = 0, lastT = performance.now(), userCmd = { thr:0, yaw:0, pitch:0, roll:0 };
+function frame(now) {
+  requestAnimationFrame(frame);
+  let dt = Math.min(0.05, (now - lastT) / 1000); lastT = now;
+  kbUpdate(dt);
+  const dev = readDevice();
+  userCmd = { thr: clamp(KB.thr + dev.thr, -1, 1), yaw: clamp(KB.yaw + dev.yaw, -1, 1), pitch: clamp(KB.pitch + dev.pitch, -1, 1), roll: clamp(KB.roll + dev.roll, -1, 1) };
+  const running = $('#menu').hidden && !M.paused && M.started;
+  if (running) {
+    gameLogic(dt);
+    for (const d of drones) if (d.ai) aiThink(d, dt); else Object.assign(d.input, d.armed ? userCmd : { thr:0, yaw:0, pitch:0, roll:0 });
+    acc += dt;
+    while (acc >= STEP) {
+      for (const d of drones) d.prev.copy(d.pos);
+      for (const d of drones) stepDrone(d, STEP);
+      collidePairs();
+      if (M.phase === 'play' || M.phase === 'penalty') for (const d of drones) checkRules(d, STEP);
+      if (M.phase === 'arming' && M.user && M.user.pos.y > A.ballR + 0.04 * A.cs) penaltyAgainst(M.user.team, '鳴聲前提早起飛');
+      acc -= STEP;
+    }
+  }
+  // visuals
+  for (const d of drones) {
+    d.root.position.copy(d.pos);
+    d.body.rotation.set(d.roll, d.yaw, -d.pitch);
+    const spin = d.armed ? 60 : 0; d.prop += spin * dt;
+    d.props.forEach((b, i) => b.rotation.y = d.prop * (i % 3 === 0 ? 1 : -1));
+    if (d.ribbon) { d.ribbon.rotation.z = clamp(d.vel.x * 0.35, -1.1, 1.1); d.ribbon.rotation.x = clamp(-d.vel.z * 0.35, -1.1, 1.1); }
+    if (d.marker.visible) d.marker.position.y = A.ballR * (2.1 + Math.sin(now / 250) * 0.15);
+  }
+  for (const R of rings) { if (R.flash > 0) { R.flash -= dt; R.mat.emissiveIntensity = 0.55 + Math.abs(Math.sin(R.flash * 14)) * 1.6; } else R.mat.emissiveIntensity = 0.55; }
+  updateCamera(dt);
+  renderer.render(scene, camera);
+  hudUpdate(); drawSticks(userCmd); drawMini();
+  if (!$('#menu').hidden) menuMonitor();
+}
+
+function gameLogic(dt) {
+  if (M.phase === 'arming') {
+    M.t += dt;
+    if (M.t >= M.armDelay) {
+      M.phase = 'play'; drones.forEach(d => d.armed = true);
+      beep(1250, 0.45, 'square', 0.08); banner('GO', '', 700, '#3ddc84');
+    }
+  } else if (M.phase === 'play') {
+    M.clock -= dt;
+    for (let t = 0; t < 2; t++) {
+      if (M.mustReturn[t] && byTeam(t).every(d => d.pos.x * dirOf(t) < 0)) { M.mustReturn[t] = false; toast(`${TEAMS[t].name}已全員回到己方半場，可以再次得分`); }
+    }
+    if (M.clock <= 0) { M.clock = 0; endSet(); }
+  } else if (M.phase === 'penaltySetup') {
+    M.t += dt;
+    if (M.t > 2.2) { M.phase = 'penalty'; M.t = 10; M.penalty.striker.frozen = false; M.penalty.def.frozen = false; beep(1250, 0.4); banner('', ''); }
+  } else if (M.phase === 'penalty') {
+    M.t -= dt;
+    if (M.t <= 0) penaltyEnd(false);
+  } else if (M.phase === 'wait') {
+    M.wait.t -= dt;
+    if (M.wait.t <= 0) { const fn = M.wait.fn; M.wait = null; banner(''); fn(); }
+  }
+}
+
+/* ---------------- Menu ---------------- */
+const radios = (name, key, parse) => document.querySelectorAll(`input[name="${name}"]`).forEach(el => {
+  el.addEventListener('change', () => { S[key] = parse ? parse(el.value) : el.value; save(); onSettingChange(key); });
+});
+radios('arena', 'arena'); radios('team', 'team', Number); radios('role', 'role'); radios('setsec', 'setSec', Number);
+radios('diff', 'diff', Number); radios('flight', 'flight'); radios('input', 'input');
+function syncForm() {
+  const set = id => { const el = document.getElementById(id); if (el) el.checked = true; };
+  set('ar-' + S.arena); set('tm-' + S.team); set('rl-' + S.role); set('ss-' + S.setSec); set('df-' + S.diff); set('fl-' + S.flight); set('in-' + S.input);
+  $('#serBox').hidden = S.input !== 'serial'; $('#gpBox').hidden = S.input !== 'gamepad';
+  buildMapTable();
+}
+let needRestart = false;
+function onSettingChange(key) {
+  if (['arena', 'team', 'role', 'setSec'].includes(key) && M.started) { needRestart = true; $('#footNote').textContent = '賽場、隊伍、位置或局時已變更，按「以新設定開始」生效。'; }
+  if (key === 'arena' && !M.started) { buildArena(); makeTeams(); drones.forEach(placeAtStart); }
+  if ((key === 'team' || key === 'role') && !M.started) setUser(S.role === 'spectate' ? null : roleOf(S.team, S.role));
+  if (key === 'input' && S.input === 'serial') { for (const f in S.map) if (S.map[f].a > 3) S.map = JSON.parse(JSON.stringify(DEF.map)); save(); }
+  syncForm(); updateStartLabel();
+}
+function updateStartLabel() {
+  $('#btnStart').textContent = !M.started ? '開始比賽' : needRestart ? '以新設定開始' : '繼續比賽';
+  $('#btnRestart').hidden = !M.started || needRestart;
+}
+function openMenu() { $('#menu').hidden = false; updateStartLabel(); }
+function resumeFromMenu() {
+  audioInit();
+  $('#menu').hidden = true;
+  if (!M.started || needRestart) { needRestart = false; $('#footNote').textContent = '按 Esc 隨時回到這裡。'; newMatch(); }
+}
+$('#btnStart').addEventListener('click', resumeFromMenu);
+$('#btnRestart').addEventListener('click', () => { needRestart = true; resumeFromMenu(); });
+$('#btnSer').addEventListener('click', serialConnect);
+$('#btnCal').addEventListener('click', () => { if (!SER.on) { serStat('請先連接 Arduino，放開搖桿後再按校正。', true); return; } S.center = SER.raw.slice(); save(); serStat(`中心已設為 ${S.center.join(' / ')}`); });
+$('#btnM2').addEventListener('click', () => { S.map = { thr:{a:1,inv:true}, yaw:{a:0,inv:false}, pitch:{a:3,inv:true}, roll:{a:2,inv:false} }; save(); buildMapTable(); });
+$('#btnM1').addEventListener('click', () => { S.map = { thr:{a:3,inv:true}, yaw:{a:0,inv:false}, pitch:{a:1,inv:true}, roll:{a:2,inv:false} }; save(); buildMapTable(); });
+
+const FN = [['thr', '油門（升降）'], ['yaw', '偏航（轉向）'], ['pitch', '俯仰（前後）'], ['roll', '橫滾（左右）']];
+const AXN = ['LX', 'LY', 'RX', 'RY'];
+function buildMapTable() {
+  const tb = $('#mapBody'); tb.innerHTML = '';
+  const n = S.input === 'gamepad' ? Math.max(4, GP.axes.length || 4) : 4;
+  for (const [f, label] of FN) {
+    const tr = document.createElement('tr');
+    const opts = Array.from({ length:n }, (_, i) => `<option value="${i}"${S.map[f].a === i ? ' selected' : ''}>${S.input === 'gamepad' ? '軸 ' + i : AXN[i] || '軸 ' + i}</option>`).join('');
+    tr.innerHTML = `<td>${label}</td><td><select id="map-${f}" aria-label="${label} 軸">${opts}</select></td>
+      <td><input type="checkbox" id="inv-${f}" aria-label="${label} 反向"${S.map[f].inv ? ' checked' : ''}></td><td><div class="bar"><s id="bar-${f}"></s></div></td>`;
+    tb.appendChild(tr);
+    tr.querySelector('select').addEventListener('change', e => { S.map[f].a = +e.target.value; save(); });
+    tr.querySelector('input').addEventListener('change', e => { S.map[f].inv = e.target.checked; save(); });
+  }
+}
+// raw monitor cells
+const rawEl = $('#raw');
+rawEl.innerHTML = AXN.map((n, i) => `<div><b>${n}</b><span id="rv${i}">—</span><i><s id="rb${i}"></s></i><em id="rr${i}">範圍 —</em></div>`).join('');
+function menuMonitor() {
+  const ser = S.input === 'serial';
+  for (let i = 0; i < 4; i++) {
+    let val = '—', pos = 0.5, range = '範圍 —';
+    if (ser && SER.on && SER.last) { val = SER.raw[i]; pos = SER.raw[i] / 255; range = `範圍 ${SER.min[i]}–${SER.max[i]}`; }
+    else if (S.input === 'gamepad' && GP.axes.length) { val = (GP.axes[i] || 0).toFixed(2); pos = ((GP.axes[i] || 0) + 1) / 2; range = ''; }
+    $('#rv' + i).textContent = val; $('#rb' + i).style.left = (pos * 100) + '%'; $('#rr' + i).textContent = range;
+  }
+  const out = readDevice();
+  for (const [f] of FN) { const v = out[f], b = $('#bar-' + f); if (!b) continue; b.style.left = (50 + Math.min(0, v) * 50) + '%'; b.style.width = (Math.abs(v) * 50) + '%'; }
+  if (ser) {
+    if (SER.on) {
+      const age = performance.now() - SER.last;
+      if (!SER.last || age > 1500) serStat(SER.msg ? `等待資料…Arduino 訊息：${SER.msg}` : '已連接，但沒有收到 J, 開頭的資料。確認上傳的是 PS2_DroneSoccer.ino 且 baud 為 115200。', !!SER.last);
+      else serStat(`收到資料 · 模式 0x${(SER.mode ?? 0).toString(16).toUpperCase()}${SER.mode === 0x73 || SER.mode === 0x79 ? '（類比模式）' : ''} · 按鍵 0x${SER.btn.toString(16).toUpperCase()} · 中心 ${S.center.join('/')}`);
+    }
+    const w = $('#serWarn'); const msgs = [];
+    if (SER.on && SER.last && SER.mode != null && SER.mode !== 0x73 && SER.mode !== 0x79) msgs.push(`手把模式 0x${SER.mode.toString(16).toUpperCase()} 不是類比模式。按手把上的 ANALOG 鍵讓紅燈亮。`);
+    const span = i => SER.max[i] - SER.min[i];
+    if (SER.on && performance.now() - SER.t0 > 4000 && (span(1) > 60 || span(3) > 60)) {
+      const dead = [0, 2].filter(i => span(i) < 4).map(i => AXN[i]);
+      if (dead.length) msgs.push(`${dead.join('、')} 一直沒有變化（Y 軸有動）。這是手把或接收器端沒送出 X 軸資料，請照下方「X 軸沒有反應」的步驟檢查。`);
+    }
+    w.hidden = !msgs.length; w.textContent = msgs.join(' ');
+  }
+  if (S.input === 'gamepad') {
+    const st = $('#gpStat');
+    if (!GP.ok) st.textContent = '目前頁面不允許讀取遊戲手把。請下載 drone-soccer.html 用 Chrome 或 Edge 開啟。';
+    else if (GP.idx != null) st.textContent = `已偵測：${GP.name}（${GP.axes.length} 軸）。用下表指定各軸功能。`;
+    if (GP.axes.length && $('#mapBody select') && $('#mapBody select').options.length !== Math.max(4, GP.axes.length)) buildMapTable();
+  }
+}
+addEventListener('gamepadconnected', () => { if (S.input === 'gamepad') buildMapTable(); });
+
+/* ---------------- Boot ---------------- */
+buildArena(); makeTeams(); drones.forEach(placeAtStart);
+camPos.set(0, A.H + 1.2 * A.cs, A.W / 2 + 3.4 * A.cs); M.cam = 2; $('#hudCam').textContent = CAMS[M.cam];
+syncForm(); updateStartLabel();
+if (matchMedia('(pointer:coarse)').matches) $('#footNote').textContent = '手機可選「觀戰」模式；操控請用電腦鍵盤、USB 手把或 Arduino。';
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
