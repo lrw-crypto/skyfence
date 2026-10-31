@@ -125,6 +125,19 @@ details summary{cursor:pointer;font-size:14px;font-weight:500}
 details ol,details ul{margin:8px 0 0;padding-left:20px;font-size:13px;color:#c6d0dc;max-width:70ch}
 details li{margin-bottom:4px}
 .foot{grid-column:1/-1;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.crew{grid-column:1/-1;display:flex;flex-direction:column;gap:10px}
+.crew h2{margin:0;font-family:var(--f-display);font-size:20px;letter-spacing:.1em;font-weight:700;text-transform:uppercase}
+.crew h2 small{font-family:var(--f-body);font-size:13px;letter-spacing:0;color:var(--muted);font-weight:400;margin-left:8px}
+.crew-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.pilot{background:var(--panel-solid);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:grid;grid-template-columns:72px minmax(0,1fr);gap:4px 12px;align-items:center;cursor:pointer}
+.pilot.on{border-color:var(--amber);box-shadow:inset 0 0 0 1px var(--amber)}
+.pilot img{grid-row:1/4;width:72px;height:108px;object-fit:contain;background:radial-gradient(circle at 50% 40%,#22324a,#101720 70%);border-radius:8px}
+.pilot .rl{font-family:var(--f-display);font-weight:700;letter-spacing:.1em;font-size:14px;color:var(--amber)}
+.pilot input{width:100%;min-width:0;background:#0c121a;color:var(--text);border:1px solid var(--line);border-radius:6px;padding:4px 8px;font-family:var(--f-body);font-size:14px}
+.pilot input:focus-visible{outline:2px solid var(--amber);outline-offset:1px}
+.pilot .ds{font-size:11.5px;color:var(--muted);line-height:1.4}
+#hudFace{width:40px;height:60px;object-fit:contain;flex:none}
+@media (max-width:620px){.crew-row{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:860px){.sheet{grid-template-columns:minmax(0,1fr)} .row{grid-template-columns:minmax(0,1fr)} .raw{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (prefers-reduced-motion:reduce){#banner,#toast{transition:none}}
 #err{position:fixed;inset:auto 16px 16px;color:#ffd27a}
@@ -148,6 +161,7 @@ details li{margin-bottom:4px}
   <div id="center"><div id="banner"></div></div>
   <div id="bottom">
     <div class="pane" id="inp">
+      <img id="hudFace" alt="" hidden>
       <canvas id="sticks" width="300" height="140" aria-label="搖桿位置"></canvas>
       <div class="meta">
         <div>操控：<b id="hudCtl">—</b></div>
@@ -172,6 +186,11 @@ details li{margin-bottom:4px}
       </div>
       <div class="spec" id="specLine"></div>
     </div>
+
+    <section class="crew" aria-labelledby="h-crew">
+      <h2 id="h-crew">我們的飛手<small>點選角色決定你要操控誰，名字可以直接修改</small></h2>
+      <div class="crew-row" id="crew"></div>
+    </section>
 
     <section class="card" aria-labelledby="h-match">
       <h2 id="h-match">比賽設定</h2>
@@ -286,12 +305,167 @@ const ROLES = ['striker', 'guide', 'keeper'];
 const ROLE_NAME = { striker:'Striker', guide:'Guide', keeper:'Keeper' };
 // rear LED unit: Striker shows the opposing team colour (FAI B.1.5)
 const REAR = [[0x2e8bff, 0xffd23f, 0x3ddc84], [0xff3d52, 0xf2f2f2, 0xc77dff]];
+function chibiSVG(o) {
+  o = Object.assign({
+    hair: 'curly',          // 'curly' | 'straight'
+    glasses: false,
+    pants: 'short',         // 'short' | 'long'
+    socks: '#ffffff',
+    sleeve: '#1f45c8',      // 插肩袖與領口
+    pantsColor: '#1f3fae',
+    stripe: ['#d7263d', '#ffffff'],
+    emblem: '#d7263d',
+    hairColor: '#1c1817',
+    skin: '#f6d3b8',
+    skinShade: '#e9b897',
+    shirt: '#ffffff',
+    mood: 'smile',          // 'smile' | 'focus'
+    puff: 1,                // 捲髮蓬鬆度
+    frame: '#5f636a',       // 鏡框顏色
+    frameW: 2.6,
+    frameShape: 'round',    // 'round' | 'oval'
+    id: 'c'
+  }, o);
+  const id = o.id;
+  const s = [];
+  s.push(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300" width="200" height="300">`);
+  s.push(`<defs>
+    <linearGradient id="${id}sh" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${o.shirt}"/><stop offset=".75" stop-color="${o.shirt}"/><stop offset="1" stop-color="#dfe5ee"/></linearGradient>
+    <radialGradient id="${id}fc" cx=".45" cy=".4" r=".7"><stop offset="0" stop-color="${o.skin}"/><stop offset="1" stop-color="${o.skinShade}"/></radialGradient>
+  </defs>`);
+  // ground shadow
+  s.push(`<ellipse cx="100" cy="289" rx="50" ry="7" fill="#000" opacity=".18"/>`);
+
+  // ---------- legs ----------
+  const leg = (x, flip) => {
+    const out = flip ? -1 : 1; // outer side direction
+    let g = '';
+    if (o.pants === 'long') {
+      g += `<path d="M${x - 15} 204 L${x + 15} 204 L${x + 14} 268 L${x - 14} 268 Z" fill="${o.pantsColor}"/>`;
+      if (!flip) g += `<path d="M84 204 L116 204 L112 232 L100 226 L88 232 Z" fill="${o.pantsColor}"/>`;
+      const sx = x + out * 11;
+      g += `<rect x="${sx - 2.5}" y="206" width="2.6" height="60" fill="${o.stripe[0]}"/><rect x="${sx + (out > 0 ? -5.4 : 0.6)}" y="206" width="2.4" height="60" fill="${o.stripe[1]}"/>`;
+    } else {
+      g += `<rect x="${x - 9}" y="228" width="18" height="34" rx="8" fill="url(#${id}fc)"/>`;
+      g += `<rect x="${x - 9.5}" y="252" width="19" height="16" rx="4" fill="${o.socks}" stroke="#d9dde3" stroke-width="1"/>`;
+    }
+    // shoe
+    g += `<path d="M${x - 15} 272 Q${x - 16} 263 ${x - 6} 262 L${x + 8} 262 Q${x + 20} 264 ${x + 21} 276 L${x + 21} 280 L${x - 15} 280 Z" fill="#fbfbfc" stroke="#c9ced6" stroke-width="1.5"/>`;
+    g += `<rect x="${x - 15}" y="277" width="36" height="4" rx="2" fill="#b9bfc8"/>`;
+    g += `<path d="M${x - 4} 266 L${x + 8} 266" stroke="#c9ced6" stroke-width="1.5" stroke-linecap="round"/>`;
+    return g;
+  };
+  s.push(leg(80, true), leg(120, false));
+  if (o.pants === 'short') {
+    s.push(`<path d="M64 200 L136 200 L140 236 L104 236 L100 222 L96 236 L60 236 Z" fill="${o.pantsColor}"/>`);
+    s.push(`<rect x="61.5" y="204" width="2.6" height="31" fill="${o.stripe[1]}"/><rect x="64.5" y="204" width="2.6" height="31" fill="${o.stripe[0]}"/>`);
+    s.push(`<rect x="133" y="204" width="2.6" height="31" fill="${o.stripe[0]}"/><rect x="136" y="204" width="2.6" height="31" fill="${o.stripe[1]}"/>`);
+  } else {
+    s.push(`<path d="M64 200 L136 200 L137 212 L63 212 Z" fill="${o.pantsColor}"/>`);
+  }
+
+  // ---------- torso ----------
+  s.push(`<path d="M70 150 Q100 142 130 150 L138 214 Q100 222 62 214 Z" fill="url(#${id}sh)" stroke="#d8dee8" stroke-width="1.2"/>`);
+  // raglan sleeves (blue) from collar to shoulder
+  s.push(`<path d="M86 147 L70 150 Q56 156 52 178 L68 184 L74 166 Z" fill="${o.sleeve}"/>`);
+  s.push(`<path d="M114 147 L130 150 Q144 156 148 178 L132 184 L126 166 Z" fill="${o.sleeve}"/>`);
+  // collar
+  s.push(`<path d="M84 147 Q100 160 116 147" fill="none" stroke="${o.sleeve}" stroke-width="5" stroke-linecap="round"/>`);
+  // emblem: small red gear badge
+  s.push(`<g transform="translate(118 170)"><circle r="7.2" fill="none" stroke="${o.emblem}" stroke-width="3" stroke-dasharray="2.2 1.6"/><circle r="4.2" fill="#fff" stroke="${o.emblem}" stroke-width="1.4"/><circle r="1.8" fill="${o.emblem}"/>
+    <rect x="-7" y="10" width="14" height="1.6" rx=".8" fill="${o.emblem}" opacity=".7"/></g>`);
+
+  // ---------- arms + controller ----------
+  s.push(`<path d="M56 176 Q52 196 76 202" fill="none" stroke="${o.skinShade}" stroke-width="13" stroke-linecap="round"/>`);
+  s.push(`<path d="M56 176 Q52 196 76 202" fill="none" stroke="${o.skin}" stroke-width="10" stroke-linecap="round"/>`);
+  s.push(`<path d="M144 176 Q148 196 124 202" fill="none" stroke="${o.skinShade}" stroke-width="13" stroke-linecap="round"/>`);
+  s.push(`<path d="M144 176 Q148 196 124 202" fill="none" stroke="${o.skin}" stroke-width="10" stroke-linecap="round"/>`);
+  // gamepad
+  s.push(`<path d="M74 192 Q74 184 84 184 L116 184 Q126 184 126 192 L129 205 Q130 212 123 211 L114 206 L86 206 L77 211 Q70 212 71 205 Z" fill="#f4f5f7" stroke="#b7bdc7" stroke-width="1.4"/>`);
+  s.push(`<rect x="84" y="191" width="2.4" height="8" rx="1" fill="#3a3f47"/><rect x="81.2" y="193.8" width="8" height="2.4" rx="1" fill="#3a3f47"/>`);
+  s.push(`<circle cx="114" cy="191.5" r="1.9" fill="#3cb371"/><circle cx="118" cy="195" r="1.9" fill="#e04848"/><circle cx="110" cy="195" r="1.9" fill="#3a7bd5"/><circle cx="114" cy="198.5" r="1.9" fill="#e6b800"/>`);
+  s.push(`<circle cx="93" cy="199" r="3" fill="#cfd4dc"/><circle cx="105" cy="199" r="3" fill="#cfd4dc"/>`);
+  // thumbs
+  s.push(`<ellipse cx="78" cy="198" rx="6.5" ry="5.5" fill="${o.skin}" stroke="${o.skinShade}" stroke-width="1.2"/>`);
+  s.push(`<ellipse cx="122" cy="198" rx="6.5" ry="5.5" fill="${o.skin}" stroke="${o.skinShade}" stroke-width="1.2"/>`);
+
+  // ---------- head ----------
+  s.push(`<rect x="91" y="138" width="18" height="12" rx="5" fill="${o.skinShade}"/>`);
+  s.push(`<ellipse cx="38" cy="98" rx="9" ry="11" fill="${o.skin}" stroke="${o.skinShade}" stroke-width="1.5"/>`);
+  s.push(`<ellipse cx="162" cy="98" rx="9" ry="11" fill="${o.skin}" stroke="${o.skinShade}" stroke-width="1.5"/>`);
+  s.push(`<ellipse cx="100" cy="94" rx="62" ry="54" fill="url(#${id}fc)"/>`);
+
+  // hair
+  const hc = o.hairColor;
+  if (o.hair === 'curly') {
+    // faded sides
+    s.push(`<path d="M40 94 Q38 60 62 44 L62 70 Q48 76 46 98 Z" fill="${hc}" opacity=".55"/>`);
+    s.push(`<path d="M160 94 Q162 60 138 44 L138 70 Q152 76 154 98 Z" fill="${hc}" opacity=".55"/>`);
+    // curly top: clusters of curls
+    let curls = [[58,52,15],[74,40,16],[92,34,16],[110,34,16],[127,40,16],[142,52,15],[66,62,13],[84,54,14],[102,50,14],[120,54,14],[136,62,13],[52,66,11],[148,66,11],[95,62,11],[112,64,10],[78,66,10],[128,70,9]];
+    if (o.puff > 1) curls = curls.concat([[84,26,13],[101,22,14],[118,26,13],[66,32,12],[136,32,12],[48,48,11],[152,48,11]]);
+    const P = ([x, y, r]) => [100 + (x - 100) * (1 + (o.puff - 1) * 0.25), 70 + (y - 70) * o.puff, r * (o.puff > 1 ? 0.92 : 1)];
+    curls = curls.map(P);
+    s.push(`<g fill="${hc}">` + curls.map(([x,y,r]) => `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}"/>`).join('') + `</g>`);
+    s.push(`<g fill="none" stroke="#4a403b" stroke-width="1.6" stroke-linecap="round" opacity=".8">` +
+      curls.filter((_, i) => i % 2 === 0).map(([x,y]) => `<path d="M${(x-5).toFixed(1)} ${(y+2).toFixed(1)} q5 -6 10 0"/>`).join('') + `</g>`);
+  } else {
+    // straight black hair with bangs
+    s.push(`<path d="M38 100 Q34 40 100 34 Q166 40 162 100 Q156 78 150 72 L148 84 L136 72 L130 86 L118 70 L110 86 L100 70 L90 86 L82 70 L70 86 L64 72 L52 84 L50 72 Q44 80 38 100 Z" fill="${hc}"/>`);
+    s.push(`<path d="M64 46 Q100 32 136 46" fill="none" stroke="#4a4240" stroke-width="3" stroke-linecap="round" opacity=".7"/>`);
+    s.push(`<path d="M86 52 Q96 60 92 76 M112 52 Q104 62 108 76" fill="none" stroke="#3a3331" stroke-width="2" stroke-linecap="round" opacity=".8"/>`);
+  }
+
+  // brows
+  const browY = o.hair === 'straight' ? 90 : 86;
+  if (o.mood === 'focus') {
+    s.push(`<path d="M66 ${browY} L84 ${browY + 3}" stroke="#2b211d" stroke-width="3.2" stroke-linecap="round"/><path d="M134 ${browY} L116 ${browY + 3}" stroke="#2b211d" stroke-width="3.2" stroke-linecap="round"/>`);
+  } else {
+    s.push(`<path d="M66 ${browY + 2} Q75 ${browY - 3} 84 ${browY + 1}" fill="none" stroke="#2b211d" stroke-width="3" stroke-linecap="round"/><path d="M116 ${browY + 1} Q125 ${browY - 3} 134 ${browY + 2}" fill="none" stroke="#2b211d" stroke-width="3" stroke-linecap="round"/>`);
+  }
+  // eyes
+  for (const ex of [76, 124]) {
+    s.push(`<ellipse cx="${ex}" cy="106" rx="9.5" ry="11.5" fill="#2a1d17"/>`);
+    s.push(`<ellipse cx="${ex}" cy="109" rx="6" ry="6" fill="#4a3428"/>`);
+    s.push(`<circle cx="${ex + 3.2}" cy="101.5" r="3.6" fill="#fff"/><circle cx="${ex - 3}" cy="111" r="1.6" fill="#fff" opacity=".9"/>`);
+  }
+  // glasses
+  if (o.glasses) {
+    const lens = cx => o.frameShape === 'oval' ? `<rect x="${cx - 18}" y="93" width="36" height="27" rx="12"/>` : `<circle cx="${cx}" cy="106" r="17"/>`;
+    s.push(`<g fill="none" stroke="${o.frame}" stroke-width="${o.frameW}">${lens(76)}${lens(124)}<path d="M93 104 Q100 99 107 104"/><path d="M59 103 L43 98"/><path d="M141 103 L157 98"/></g>`);
+    s.push(`<path d="M66 96 Q70 92 76 92" fill="none" stroke="#fff" stroke-width="2" opacity=".6" stroke-linecap="round"/><path d="M114 96 Q118 92 124 92" fill="none" stroke="#fff" stroke-width="2" opacity=".6" stroke-linecap="round"/>`);
+  }
+  // blush, nose, mouth
+  s.push(`<ellipse cx="60" cy="126" rx="9" ry="5" fill="#ff8f8f" opacity=".42"/><ellipse cx="140" cy="126" rx="9" ry="5" fill="#ff8f8f" opacity=".42"/>`);
+  s.push(`<path d="M99 118 q2 3 4 0" fill="none" stroke="${o.skinShade}" stroke-width="2" stroke-linecap="round"/>`);
+  if (o.mood === 'focus') s.push(`<path d="M92 130 Q100 133 108 130" fill="none" stroke="#7a3b2e" stroke-width="2.6" stroke-linecap="round"/>`);
+  else s.push(`<path d="M90 127 Q100 138 110 127 Q100 131 90 127 Z" fill="#c4544a" stroke="#7a3b2e" stroke-width="1.8" stroke-linejoin="round"/>`);
+  s.push(`</svg>`);
+  return s.join('');
+}
+
+// 我們的三位飛手（依照片：校隊運動服）與對手（深灰隊服）
+const CREW = [
+  { hair:'curly', glasses:true, pants:'long', socks:'#ffffff', mood:'focus', frame:'#4b4f56', frameW:3, desc:'捲髮・黑框圓眼鏡・長褲' },
+  { hair:'straight', glasses:false, pants:'short', socks:'#1b1b1f', mood:'smile', desc:'黑直髮瀏海・短褲・黑襪' },
+  { hair:'curly', glasses:true, pants:'short', socks:'#ffffff', mood:'smile', hairColor:'#231b18', puff:1.12, frame:'#a7adb5', frameW:2, frameShape:'oval', skin:'#f3cdb0', skinShade:'#e2ad8a', desc:'蓬鬆捲髮・銀框眼鏡・短褲' },
+];
+const RIVAL = { sleeve:'#3a3f48', pantsColor:'#2a2e35', stripe:['#9aa3ad','#e6e9ee'], emblem:'#6b7380' };
+const OPP = [
+  Object.assign({ hair:'straight', glasses:false, pants:'long', hairColor:'#3a2a20', mood:'focus' }, RIVAL),
+  Object.assign({ hair:'curly', glasses:false, pants:'short', hairColor:'#2a201b', socks:'#ffffff' }, RIVAL),
+  Object.assign({ hair:'straight', glasses:true, pants:'short', hairColor:'#151313', socks:'#1b1b1f', frame:'#2b2d31', frameShape:'oval' }, RIVAL),
+];
+const svgURL = cfg => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(chibiSVG(cfg));
+const crewCfg = (t, i) => Object.assign({ id:'c' + t + i }, t === S.team ? CREW[i] : OPP[i]);
+const pilotName = d => (d.team === S.team ? (S.names[d.idx] || `飛手 ${d.idx + 1}`) : `對手 ${d.idx + 1}`);
+
 const DIFF = [{ spd:0.62, react:0.75 }, { spd:0.8, react:1 }, { spd:0.95, react:1.35 }];
 const dirOf = t => t === 0 ? 1 : -1;  // red attacks +x
 
 /* ---------------- Settings ---------------- */
 const DEF = { arena:'B', team:0, role:'striker', setSec:180, diff:1, flight:'assist', input:'keyboard',
-  deadzone:0.06, expo:0.25, center:[128,128,128,128],
+  deadzone:0.06, expo:0.25, center:[128,128,128,128], names:['飛手一','飛手二','飛手三'],
   map:{ thr:{a:1,inv:true}, yaw:{a:0,inv:false}, pitch:{a:3,inv:true}, roll:{a:2,inv:false} } };
 let S = JSON.parse(JSON.stringify(DEF));
 try { const s = JSON.parse(localStorage.getItem('skyfence3v3') || 'null'); if (s) S = Object.assign(S, s); } catch (e) {}
@@ -395,14 +569,6 @@ function buildArena() {
     pad.position.set(x, 0.02, 0); pad.receiveShadow = true; grp.add(pad);
     const edge = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.05, A.W * 0.8), new THREE.MeshBasicMaterial({ color:TEAMS[t].hex }));
     edge.position.set(x + D * 0.8 * A.cs, 0.03, 0); grp.add(edge);
-    for (let i = 0; i < 3; i++) {
-      const p = new THREE.Group();
-      const body = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.2, 1.1, 10), new THREE.MeshStandardMaterial({ color:TEAMS[t].hex, roughness:0.7 }));
-      body.position.y = 0.95; const legs = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.13, 0.42, 8), new THREE.MeshStandardMaterial({ color:0x20262f }));
-      legs.position.y = 0.21; const head = new THREE.Mesh(new THREE.SphereGeometry(0.13, 12, 10), new THREE.MeshStandardMaterial({ color:0xc9a98a }));
-      head.position.y = 1.63; p.add(body, legs, head); body.castShadow = true;
-      p.position.set(x - D * 0.2, 0, (i - 1) * 0.75 * Math.min(1.4, A.cs)); grp.add(p);
-    }
   }
   // overhead light bars
   for (let i = -1; i <= 1; i++) {
@@ -550,16 +716,66 @@ function collidePairs() {
 const M = { phase:'menu', setNo:1, clock:180, goals:[0,0], setWins:[0,0], results:[], mustReturn:[false,false],
   t:0, armDelay:4, penalty:null, ot:false, wait:null, paused:false, started:false, cam:0, user:null, userSaved:null };
 
+// chibi pilots standing in the pilot areas
+const texCache = {};
+let pilotGroup = null, pilotSprites = [[], []];
+function chibiTexture(cfg) {
+  const url = svgURL(cfg);
+  if (texCache[url]) return texCache[url];
+  const c = document.createElement('canvas'); c.width = 256; c.height = 384;
+  const tex = new THREE.CanvasTexture(c); tex.encoding = THREE.sRGBEncoding;
+  if (typeof Image !== 'undefined') {
+    const img = new Image();
+    img.onload = () => { c.getContext('2d').drawImage(img, 0, 0, 256, 384); tex.needsUpdate = true; };
+    img.src = url;
+  }
+  return texCache[url] = tex;
+}
+function buildPilots() {
+  if (pilotGroup) scene.remove(pilotGroup);
+  pilotGroup = new THREE.Group(); pilotSprites = [[], []];
+  for (let t = 0; t < 2; t++) {
+    const D = dirOf(t), x = -D * (A.L / 2 + 1.3 * A.cs);
+    for (let i = 0; i < 3; i++) {
+      const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map:chibiTexture(crewCfg(t, i)), transparent:true, alphaTest:0.05 }));
+      sp.scale.set(1.0, 1.5, 1);
+      sp.position.set(x, 0.79, (i - 1) * 0.75 * Math.min(1.4, A.cs) * (t ? -1 : 1));
+      sp.userData.baseY = 0.79;
+      pilotGroup.add(sp); pilotSprites[t][i] = sp;
+    }
+  }
+  scene.add(pilotGroup);
+  buildCrew();
+}
+function buildCrew() {
+  const row = $('#crew'); if (!row) return;
+  row.innerHTML = '';
+  for (let i = 0; i < 3; i++) {
+    const card = document.createElement('div');
+    card.className = 'pilot' + (S.role === ROLES[i] ? ' on' : '');
+    card.innerHTML = `<img alt="" src="${svgURL(Object.assign({ id:'m' + i }, CREW[i]))}"><div class="rl">${ROLE_NAME[ROLES[i]].toUpperCase()}</div>
+      <input id="name-${i}" maxlength="10" aria-label="${ROLE_NAME[ROLES[i]]} 飛手名字"><div class="ds">${CREW[i].desc}</div>`;
+    const inp = card.querySelector('input'); inp.value = S.names[i] || '';
+    inp.addEventListener('input', () => { S.names[i] = inp.value.trim(); save(); if (M.user && M.user.team === S.team && M.user.idx === i) setUser(M.user); });
+    inp.addEventListener('click', e => e.stopPropagation());
+    card.addEventListener('click', () => { const r = document.getElementById('rl-' + ROLES[i]); if (r) { r.checked = true; r.dispatchEvent(new Event('change')); } });
+    row.appendChild(card);
+  }
+}
+
 function makeTeams() {
   drones.forEach(d => d.dispose()); drones = [];
   for (let t = 0; t < 2; t++) for (let i = 0; i < 3; i++) drones.push(new Drone(t, i));
+  buildPilots();
   setUser(S.role === 'spectate' ? null : roleOf(S.team, S.role));
 }
 function setUser(d) {
   if (M.user) { M.user.ai = true; M.user.marker.visible = false; }
   M.user = d;
   if (d) { d.ai = false; d.marker.visible = true; }
-  $('#hudCtl').textContent = d ? `${TEAMS[d.team].name} ${ROLE_NAME[d.role]}` : '觀戰（全 AI）';
+  $('#hudCtl').textContent = d ? `${pilotName(d)}（${TEAMS[d.team].name} ${ROLE_NAME[d.role]}）` : '觀戰（全 AI）';
+  const face = $('#hudFace');
+  if (d) { const u = svgURL(crewCfg(d.team, d.idx)); if (face.dataset.u !== u) { face.src = u; face.dataset.u = u; } face.hidden = false; } else face.hidden = true;
 }
 
 function placeAtStart(d) {
@@ -937,7 +1153,7 @@ function switchDrone(step) {
   const mates = byTeam(M.user.team); const i = mates.indexOf(M.user);
   const nd = mates[(i + step + 3) % 3];
   nd.armed = M.user.armed || nd.armed;
-  setUser(nd); toast(`改為操控 ${ROLE_NAME[nd.role]}`);
+  setUser(nd); toast(`改為操控 ${pilotName(nd)}（${ROLE_NAME[nd.role]}）`);
 }
 function togglePause() { if (!M.started) return; M.paused = !M.paused; $('#clock').classList.toggle('paused', M.paused); if (M.paused) banner('PAUSED', '按 P 繼續', 0, '#ffb627'); else banner(''); }
 function onStartButton() { if (!$('#menu').hidden) resumeFromMenu(); else if (M.phase === 'over') newMatch(); else togglePause(); }
@@ -1086,6 +1302,11 @@ function frame(now) {
     if (d.ribbon) { d.ribbon.rotation.z = clamp(d.vel.x * 0.35, -1.1, 1.1); d.ribbon.rotation.x = clamp(-d.vel.z * 0.35, -1.1, 1.1); }
     if (d.marker.visible) d.marker.position.y = A.ballR * (2.1 + Math.sin(now / 250) * 0.15);
   }
+  for (let t = 0; t < 2; t++) pilotSprites[t].forEach((sp, i) => {
+    const active = M.user && M.user.team === t && M.user.idx === i;
+    const amp = active ? 0.05 : 0.015, sp2 = active ? 180 : 420;
+    sp.position.y = sp.userData.baseY + Math.abs(Math.sin(now / sp2 + i * 1.7)) * amp;
+  });
   for (const R of rings) { if (R.flash > 0) { R.flash -= dt; R.mat.emissiveIntensity = 0.55 + Math.abs(Math.sin(R.flash * 14)) * 1.6; } else R.mat.emissiveIntensity = 0.55; }
   updateCamera(dt);
   renderer.render(scene, camera);
@@ -1134,6 +1355,8 @@ let needRestart = false;
 function onSettingChange(key) {
   if (['arena', 'team', 'role', 'setSec'].includes(key) && M.started) { needRestart = true; $('#footNote').textContent = '賽場、隊伍、位置或局時已變更，按「以新設定開始」生效。'; }
   if (key === 'arena' && !M.started) { buildArena(); makeTeams(); drones.forEach(placeAtStart); }
+  if (key === 'team' && !M.started) buildPilots();
+  if (key === 'role') buildCrew();
   if ((key === 'team' || key === 'role') && !M.started) setUser(S.role === 'spectate' ? null : roleOf(S.team, S.role));
   if (key === 'input' && S.input === 'serial') { for (const f in S.map) if (S.map[f].a > 3) S.map = JSON.parse(JSON.stringify(DEF.map)); save(); }
   syncForm(); updateStartLabel();

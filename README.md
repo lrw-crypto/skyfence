@@ -12,6 +12,12 @@ https://<你的帳號>.github.io/<儲存庫名稱>/
 
 要用 Arduino（序列埠）或 USB 手把，請使用電腦版 **Chrome** 或 **Edge**。GitHub Pages 是 HTTPS 網址，可以直接使用 Web Serial。
 
+## 飛手角色
+
+![三位飛手](art/pilots.png)
+
+三位 Q 版飛手穿校隊運動服，站在籠外飛手區；在設定選單點選角色即可決定要操控誰，名字可直接修改。
+
 ## 比賽規則（FAI F9A）
 
 - 每隊 3 架：1 架 Striker、2 架 Guide／Keeper。只有 Striker 能得分。
