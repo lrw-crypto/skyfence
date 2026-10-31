@@ -128,10 +128,11 @@ details li{margin-bottom:4px}
 .crew{grid-column:1/-1;display:flex;flex-direction:column;gap:10px}
 .crew h2{margin:0;font-family:var(--f-display);font-size:20px;letter-spacing:.1em;font-weight:700;text-transform:uppercase}
 .crew h2 small{font-family:var(--f-body);font-size:13px;letter-spacing:0;color:var(--muted);font-weight:400;margin-left:8px}
-.crew-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-.pilot{background:var(--panel-solid);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:grid;grid-template-columns:72px minmax(0,1fr);gap:4px 12px;align-items:center}
+.crew-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.pilot{background:var(--panel-solid);border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:grid;grid-template-columns:60px minmax(0,1fr);gap:3px 10px;align-items:center}
 .pilot.on{border-color:var(--amber);box-shadow:inset 0 0 0 1px var(--amber)}
-.pilot img{grid-row:1/4;width:72px;height:108px;object-fit:contain;background:radial-gradient(circle at 50% 40%,#22324a,#101720 70%);border-radius:8px}
+.pilot img{grid-row:1/4;width:60px;height:56px;object-fit:cover;background:radial-gradient(circle at 50% 40%,#22324a,#101720 70%);border-radius:8px}
+.pilot .rl em{font-style:normal;margin-left:6px;font-size:11px;color:#0a0e13;background:var(--amber);border-radius:3px;padding:0 4px;letter-spacing:.04em}
 .pilot .rl{font-family:var(--f-display);font-weight:700;letter-spacing:.1em;font-size:14px;color:var(--amber)}
 .pilot input{width:100%;min-width:0;background:#0c121a;color:var(--text);border:1px solid var(--line);border-radius:6px;padding:4px 8px;font-family:var(--f-body);font-size:14px}
 .pilot input:focus-visible{outline:2px solid var(--amber);outline-offset:1px}
@@ -199,6 +200,40 @@ details li{margin-bottom:4px}
 .ch-skill b{font-family:var(--f-display);font-size:17px;letter-spacing:.06em}
 .ch-skill span{font-size:12.5px;color:#c3cdd9;line-height:1.45}
 #select.flat .ch-stats,#select.flat .ch-skill{opacity:.3}
+.sel-main{position:relative;width:100%;max-width:1100px;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:18px;align-items:start}
+.sel-detail{cursor:default;border-color:var(--amber)}
+.sel-detail .ch-art{height:290px}
+.sel-detail .ch-art img{animation:hop .9s ease-in-out infinite}
+.sel-detail .ch-p1{opacity:1}
+.sel-side{display:flex;flex-direction:column;gap:10px;min-width:0}
+.sel-label{font-family:var(--f-display);font-weight:700;letter-spacing:.12em;font-size:15px;color:var(--text)}
+.sel-label small{font-family:var(--f-body);letter-spacing:0;font-weight:400;font-size:12px;color:var(--muted);margin-left:6px}
+.sel-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.gc{all:unset;box-sizing:border-box;cursor:pointer;position:relative;aspect-ratio:1/1.1;border-radius:10px;overflow:hidden;border:2px solid var(--line);background:radial-gradient(circle at 50% 35%,#24395a,#111a28 75%);transition:transform .12s,border-color .12s}
+.gc img{width:100%;height:78%;object-fit:cover;object-position:50% 20%;display:block}
+.gc .nm{position:absolute;left:0;right:0;bottom:0;padding:2px 4px;font-size:11.5px;text-align:center;background:rgba(0,0,0,.55);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gc .ty{position:absolute;top:4px;left:4px;font-size:10.5px;font-weight:700;color:#0a0e13;border-radius:4px;padding:0 4px;line-height:16px}
+.gc .ps{position:absolute;top:4px;right:4px;font-family:var(--f-display);font-weight:800;font-size:12px;color:#0a0e13;background:var(--amber);border-radius:4px;padding:0 5px;line-height:16px}
+.gc .ps:empty{display:none}
+.gc.mate .ps{background:#8fa3ba}
+.gc:hover{border-color:#3d5170}
+.gc:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.gc.sel{border-color:var(--amber);transform:translateY(-3px);box-shadow:0 0 0 3px rgba(255,182,39,.25)}
+.gc.mate{border-color:#5d7290}
+.sel-pos{display:flex;gap:8px;flex-wrap:wrap}
+.sel-pos button{min-width:96px}
+.sel-pos button.on{background:var(--amber);border-color:var(--amber);color:#1b1306;font-weight:700}
+.sel-lineup{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.ls{display:grid;grid-template-columns:44px minmax(0,1fr);grid-template-rows:auto auto auto;gap:0 8px;align-items:center;background:#0e1520;border:1px solid var(--line);border-radius:9px;padding:6px 8px}
+.ls.me{border-color:var(--amber)}
+.ls img{grid-row:1/4;width:44px;height:40px;object-fit:cover;border-radius:7px;background:#1a2738}
+.ls .lr{font-family:var(--f-display);font-weight:700;font-size:12px;letter-spacing:.1em;color:var(--muted)}
+.ls .ln{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ls .lt{font-family:var(--f-display);font-weight:800;font-size:12px;color:var(--amber)}
+.ls .la{display:flex;gap:4px}
+.ls .la button{padding:0 9px;font-size:14px;line-height:20px;border-radius:5px}
+@media (max-width:860px){.sel-main{grid-template-columns:minmax(0,1fr)} .sel-detail .ch-art{height:180px}}
+@media (max-width:520px){.sel-grid{grid-template-columns:repeat(5,minmax(0,1fr));gap:5px} .gc .nm{font-size:9.5px} .sel-lineup{grid-template-columns:minmax(0,1fr)}}
 .sel-foot{position:relative;width:100%;max-width:1060px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
 .sel-opp{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
 .sel-opp img{width:40px;height:38px;object-fit:cover;border-radius:8px;border:2px solid var(--line);background:#141d28}
@@ -226,7 +261,7 @@ details li{margin-bottom:4px}
 @media (prefers-reduced-motion:reduce){.ch.sel .ch-art img,#vs .vs-side,#vs .vs-mid{animation:none!important}}
 @media (max-width:640px){#vs{grid-template-columns:minmax(0,1fr);grid-template-rows:1fr auto 1fr;background:linear-gradient(180deg,#c22a3c 0%,#7a1424 44%,#0a0e13 44.2%,#0a0e13 55.8%,#0c2f6e 56%,#1f5fc4 100%)} .vs-crew img{height:22vh}}
 
-@media (max-width:620px){.crew-row{grid-template-columns:minmax(0,1fr)}}
+
 @media (max-width:860px){.sheet{grid-template-columns:minmax(0,1fr)} .row{grid-template-columns:minmax(0,1fr)} .raw{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (prefers-reduced-motion:reduce){#banner,#toast{transition:none}}
 #err{position:fixed;inset:auto 16px 16px;color:#ffd27a}
@@ -281,7 +316,7 @@ details li{margin-bottom:4px}
     </div>
 
     <section class="crew" aria-labelledby="h-crew">
-      <h2 id="h-crew">我們的飛手<small>名字可以直接修改；開始比賽後在選角畫面決定你要操控誰</small></h2>
+      <h2 id="h-crew">飛手名單<small>10 位飛手，名字可以直接修改；開始比賽後在選角畫面挑人與排陣容</small></h2>
       <div class="crew-row" id="crew"></div>
     </section>
 
@@ -362,8 +397,18 @@ details li{margin-bottom:4px}
   </div>
 </div>
 <div id="select" hidden>
-  <div class="sel-head"><div class="sel-title">SELECT <span>PILOT</span></div><div class="sel-sub">選擇你要操控的飛手　← → 選擇　Enter／✕ 確認　Esc 返回</div></div>
-  <div class="sel-row" id="selRow"></div>
+  <div class="sel-head"><div class="sel-title">SELECT <span>PILOT</span></div><div class="sel-sub">方向鍵選飛手　Q／E 換位置　Enter／✕ 確認　Esc 返回</div></div>
+  <div class="sel-main">
+    <div class="ch sel-detail" id="selDetail"></div>
+    <div class="sel-side">
+      <div class="sel-label">飛手名單</div>
+      <div class="sel-grid" id="selGrid"></div>
+      <div class="sel-label">出戰位置 <small>Q／E 或 1／2／3</small></div>
+      <div class="sel-pos" id="selPos"></div>
+      <div class="sel-label">隊伍陣容 <small>隊友由 AI 操控，可用 ‹ › 更換</small></div>
+      <div class="sel-lineup" id="selLineup"></div>
+    </div>
+  </div>
   <div id="flatNote" hidden>競技模式：所有球機能力相同，不使用技能。</div>
   <div class="sel-foot">
     <div class="sel-opp" id="selOpp"></div>
@@ -428,7 +473,10 @@ function chibiSVG(o) {
     puff: 1,                // 捲髮蓬鬆度
     frame: '#5f636a',       // 鏡框顏色
     frameW: 2.6,
-    frameShape: 'round',    // 'round' | 'oval'
+    frameShape: 'round',    // 'round' | 'oval' | 'rect'
+    wide: 1,                // 身形寬度
+    mask: false,            // 口罩
+    lashes: false,          // 睫毛（女生）
     id: 'c'
   }, o);
   const id = o.id;
@@ -441,6 +489,7 @@ function chibiSVG(o) {
   // ground shadow
   s.push(`<ellipse cx="100" cy="289" rx="50" ry="7" fill="#000" opacity=".18"/>`);
 
+  s.push(`<g transform="translate(100 0) scale(${o.wide} 1) translate(-100 0)">`);
   // ---------- legs ----------
   const leg = (x, flip) => {
     const out = flip ? -1 : 1; // outer side direction
@@ -494,7 +543,11 @@ function chibiSVG(o) {
   s.push(`<ellipse cx="78" cy="198" rx="6.5" ry="5.5" fill="${o.skin}" stroke="${o.skinShade}" stroke-width="1.2"/>`);
   s.push(`<ellipse cx="122" cy="198" rx="6.5" ry="5.5" fill="${o.skin}" stroke="${o.skinShade}" stroke-width="1.2"/>`);
 
+  s.push(`</g>`);
   // ---------- head ----------
+  const hcB = o.hairColor;
+  if (o.hair === 'long') s.push(`<path d="M34 96 Q30 34 100 30 Q170 34 166 96 L170 156 Q160 168 140 160 L100 156 L60 160 Q40 168 30 156 Z" fill="${hcB}"/>`);
+  if (o.hair === 'bob') s.push(`<path d="M34 96 Q30 34 100 30 Q170 34 166 96 L168 130 Q156 140 140 134 L60 134 Q44 140 32 130 Z" fill="${hcB}"/>`);
   s.push(`<rect x="91" y="138" width="18" height="12" rx="5" fill="${o.skinShade}"/>`);
   s.push(`<ellipse cx="38" cy="98" rx="9" ry="11" fill="${o.skin}" stroke="${o.skinShade}" stroke-width="1.5"/>`);
   s.push(`<ellipse cx="162" cy="98" rx="9" ry="11" fill="${o.skin}" stroke="${o.skinShade}" stroke-width="1.5"/>`);
@@ -514,6 +567,27 @@ function chibiSVG(o) {
     s.push(`<g fill="${hc}">` + curls.map(([x,y,r]) => `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}"/>`).join('') + `</g>`);
     s.push(`<g fill="none" stroke="#4a403b" stroke-width="1.6" stroke-linecap="round" opacity=".8">` +
       curls.filter((_, i) => i % 2 === 0).map(([x,y]) => `<path d="M${(x-5).toFixed(1)} ${(y+2).toFixed(1)} q5 -6 10 0"/>`).join('') + `</g>`);
+  } else if (o.hair === 'short') {
+    s.push(`<path d="M38 98 Q34 40 100 34 Q166 40 162 98 Q160 80 152 72 Q128 64 100 66 Q72 64 48 72 Q40 80 38 98 Z" fill="${hc}"/>`);
+    s.push(`<path d="M44 66 Q90 56 156 64 L156 76 Q150 86 144 90 Q132 74 112 72 Q86 74 60 86 Q50 80 44 78 Z" fill="${hc}"/>`);
+    s.push(`<path d="M96 38 Q104 22 116 30 Q106 30 104 40 Z" fill="${hc}"/>`);
+    s.push(`<path d="M70 72 Q100 64 136 74" fill="none" stroke="#4a4240" stroke-width="2" stroke-linecap="round" opacity=".7"/>`);
+    s.push(`<path d="M70 44 Q100 34 132 44" fill="none" stroke="#4a4240" stroke-width="3" stroke-linecap="round" opacity=".6"/>`);
+  } else if (o.hair === 'buzz') {
+    s.push(`<path d="M40 96 Q38 44 100 40 Q162 44 160 96 Q156 70 142 64 Q100 56 58 64 Q44 70 40 96 Z" fill="${hc}" opacity=".88"/>`);
+    s.push(`<path d="M60 52 Q100 42 140 52" fill="none" stroke="#5a504b" stroke-width="2.4" stroke-linecap="round" opacity=".55"/>`);
+  } else if (o.hair === 'wavy') {
+    s.push(`<path d="M36 102 Q30 36 100 30 Q170 36 164 102 Q160 84 154 78 Q150 92 140 86 Q136 70 120 78 Q112 90 100 80 Q88 70 76 84 Q66 94 58 80 Q48 84 44 96 Z" fill="${hc}"/>`);
+    s.push(`<g fill="none" stroke="#4a403b" stroke-width="2.2" stroke-linecap="round" opacity=".75"><path d="M60 50 q8 -8 16 0 q8 8 16 0"/><path d="M104 46 q8 -8 16 0 q8 8 16 0"/><path d="M80 62 q8 -6 16 0"/><path d="M118 64 q8 -6 16 0"/></g>`);
+  } else if (o.hair === 'long') {
+    s.push(`<path d="M38 100 Q34 38 100 34 Q166 38 162 100 L158 86 L42 86 Z" fill="${hc}"/>`);
+    s.push(`<path d="M44 86 Q100 74 156 86 L154 92 L140 86 L132 94 L120 86 L110 94 L100 86 L90 94 L80 86 L68 94 L60 86 L46 92 Z" fill="${hc}"/>`);
+    s.push(`<path d="M38 96 Q36 130 46 150 L54 150 Q48 124 50 98 Z" fill="${hc}"/><path d="M162 96 Q164 130 154 150 L146 150 Q152 124 150 98 Z" fill="${hc}"/>`);
+    s.push(`<path d="M66 46 Q100 36 134 46" fill="none" stroke="#4a4240" stroke-width="3" stroke-linecap="round" opacity=".6"/>`);
+  } else if (o.hair === 'bob') {
+    s.push(`<path d="M38 102 Q34 38 100 34 Q166 38 162 102 Q150 76 120 74 Q96 92 62 84 Q46 90 38 102 Z" fill="${hc}"/>`);
+    s.push(`<path d="M38 98 Q36 120 42 130 L52 130 Q48 114 50 100 Z" fill="${hc}"/><path d="M162 98 Q164 120 158 130 L148 130 Q152 114 150 100 Z" fill="${hc}"/>`);
+    s.push(`<path d="M70 46 Q100 36 130 46" fill="none" stroke="#4a4240" stroke-width="3" stroke-linecap="round" opacity=".6"/>`);
   } else {
     // straight black hair with bangs
     s.push(`<path d="M38 100 Q34 40 100 34 Q166 40 162 100 Q156 78 150 72 L148 84 L136 72 L130 86 L118 70 L110 86 L100 70 L90 86 L82 70 L70 86 L64 72 L52 84 L50 72 Q44 80 38 100 Z" fill="${hc}"/>`);
@@ -533,10 +607,11 @@ function chibiSVG(o) {
     s.push(`<ellipse cx="${ex}" cy="106" rx="9.5" ry="11.5" fill="#2a1d17"/>`);
     s.push(`<ellipse cx="${ex}" cy="109" rx="6" ry="6" fill="#4a3428"/>`);
     s.push(`<circle cx="${ex + 3.2}" cy="101.5" r="3.6" fill="#fff"/><circle cx="${ex - 3}" cy="111" r="1.6" fill="#fff" opacity=".9"/>`);
+    if (o.lashes) { const sd = ex < 100 ? -1 : 1; s.push(`<path d="M${ex + sd * 8} 98 l${sd * 5} -4 M${ex + sd * 9.5} 102 l${sd * 5.5} -2" stroke="#2a1d17" stroke-width="2" stroke-linecap="round"/>`); }
   }
   // glasses
   if (o.glasses) {
-    const lens = cx => o.frameShape === 'oval' ? `<rect x="${cx - 18}" y="93" width="36" height="27" rx="12"/>` : `<circle cx="${cx}" cy="106" r="17"/>`;
+    const lens = cx => o.frameShape === 'rect' ? `<rect x="${cx - 18}" y="95" width="36" height="24" rx="5"/>` : o.frameShape === 'oval' ? `<rect x="${cx - 18}" y="93" width="36" height="27" rx="12"/>` : `<circle cx="${cx}" cy="106" r="17"/>`;
     s.push(`<g fill="none" stroke="${o.frame}" stroke-width="${o.frameW}">${lens(76)}${lens(124)}<path d="M93 104 Q100 99 107 104"/><path d="M59 103 L43 98"/><path d="M141 103 L157 98"/></g>`);
     s.push(`<path d="M66 96 Q70 92 76 92" fill="none" stroke="#fff" stroke-width="2" opacity=".6" stroke-linecap="round"/><path d="M114 96 Q118 92 124 92" fill="none" stroke="#fff" stroke-width="2" opacity=".6" stroke-linecap="round"/>`);
   }
@@ -545,16 +620,44 @@ function chibiSVG(o) {
   s.push(`<path d="M99 118 q2 3 4 0" fill="none" stroke="${o.skinShade}" stroke-width="2" stroke-linecap="round"/>`);
   if (o.mood === 'focus') s.push(`<path d="M92 130 Q100 133 108 130" fill="none" stroke="#7a3b2e" stroke-width="2.6" stroke-linecap="round"/>`);
   else s.push(`<path d="M90 127 Q100 138 110 127 Q100 131 90 127 Z" fill="#c4544a" stroke="#7a3b2e" stroke-width="1.8" stroke-linejoin="round"/>`);
+  if (o.mask) {
+    s.push(`<path d="M44 108 L56 112 L144 112 L156 108" fill="none" stroke="#c9d3de" stroke-width="2"/>`);
+    s.push(`<path d="M56 112 Q100 104 144 112 L140 136 Q100 150 60 136 Z" fill="#e8f1f8" stroke="#b9c7d4" stroke-width="1.5"/>`);
+    s.push(`<path d="M62 120 Q100 114 138 120 M64 128 Q100 124 136 128" fill="none" stroke="#c4d2df" stroke-width="1.5"/>`);
+  }
   s.push(`</svg>`);
   return s.join('');
 }
 
-// 我們的三位飛手（依照片：校隊運動服）與對手（深灰隊服）
-const CREW = [
-  { hair:'curly', glasses:true, pants:'long', socks:'#ffffff', mood:'focus', frame:'#4b4f56', frameW:3, desc:'捲髮・黑框圓眼鏡・長褲' },
-  { hair:'straight', glasses:false, pants:'short', socks:'#1b1b1f', mood:'smile', desc:'黑直髮瀏海・短褲・黑襪' },
-  { hair:'curly', glasses:true, pants:'short', socks:'#ffffff', mood:'smile', hairColor:'#231b18', puff:1.12, frame:'#a7adb5', frameW:2, frameShape:'oval', skin:'#f3cdb0', skinShade:'#e2ad8a', desc:'蓬鬆捲髮・銀框眼鏡・短褲' },
+// 我們的飛手名單（依照片，全員穿藍白校隊體育服）
+const ROSTER = [
+  { title:'王牌前鋒', type:'atk', st:{ spd:5, acc:4, pow:2, stb:2 }, desc:'捲髮・黑框圓眼鏡',
+    look:{ hair:'curly', glasses:true, pants:'long', socks:'#ffffff', mood:'focus', frame:'#4b4f56', frameW:3 } },
+  { title:'全能導引', type:'all', st:{ spd:4, acc:4, pow:4, stb:3 }, desc:'黑直髮瀏海・黑襪',
+    look:{ hair:'straight', glasses:false, pants:'short', socks:'#1b1b1f', mood:'smile' } },
+  { title:'鐵壁守門', type:'def', st:{ spd:2, acc:3, pow:5, stb:5 }, desc:'蓬鬆捲髮・銀框眼鏡',
+    look:{ hair:'curly', glasses:true, pants:'short', socks:'#ffffff', mood:'smile', hairColor:'#231b18', puff:1.12, frame:'#a7adb5', frameW:2, frameShape:'oval', skin:'#f3cdb0', skinShade:'#e2ad8a' } },
+  { title:'陽光射手', type:'atk', st:{ spd:4, acc:5, pow:2, stb:3 }, desc:'清爽短髮・笑容',
+    look:{ hair:'short', pants:'short', socks:'#ffffff', mood:'smile' } },
+  { title:'長程導引', type:'all', st:{ spd:4, acc:3, pow:4, stb:3 }, desc:'波浪瀏海・高個子',
+    look:{ hair:'wavy', pants:'long', mood:'focus', hairColor:'#231c19' } },
+  { title:'推土機', type:'all', st:{ spd:3, acc:2, pow:5, stb:4 }, desc:'平頭・壯碩・黑襪',
+    look:{ hair:'buzz', pants:'short', socks:'#1b1b1f', mood:'smile', wide:1.12, skin:'#efc6a6', skinShade:'#dda27f' } },
+  { title:'閃電射手', type:'atk', st:{ spd:5, acc:5, pow:1, stb:2 }, desc:'及肩長髮・齊瀏海',
+    look:{ hair:'long', pants:'long', lashes:true, mood:'smile', hairColor:'#1a1515' } },
+  { title:'冷靜指揮', type:'all', st:{ spd:4, acc:4, pow:3, stb:3 }, desc:'口罩・沉著冷靜',
+    look:{ hair:'short', pants:'long', mask:true, mood:'smile' } },
+  { title:'精算守門', type:'def', st:{ spd:3, acc:4, pow:4, stb:4 }, desc:'方框眼鏡・壯碩',
+    look:{ hair:'straight', glasses:true, frameShape:'rect', frame:'#3f4248', frameW:2.8, pants:'long', wide:1.1, mood:'smile' } },
+  { title:'靈巧導引', type:'all', st:{ spd:4, acc:5, pow:3, stb:2 }, desc:'短鮑伯頭・反應快',
+    look:{ hair:'bob', pants:'long', lashes:true, mood:'smile', hairColor:'#1e1817' } },
 ];
+const TYPES = {
+  atk:{ name:'攻擊手', skill:'boost', pos:0, css:'#35e0ff', ch:'攻' },
+  all:{ name:'全能型', skill:'ram', pos:1, css:'#ff8a2a', ch:'全' },
+  def:{ name:'防守型', skill:'wall', pos:2, css:'#cfe0ff', ch:'守' },
+};
+ROSTER.forEach(r => { r.kind = TYPES[r.type].name; r.skill = TYPES[r.type].skill; });
 const RIVAL = { sleeve:'#3a3f48', pantsColor:'#2a2e35', stripe:['#9aa3ad','#e6e9ee'], emblem:'#6b7380' };
 const OPP = [
   Object.assign({ hair:'straight', glasses:false, pants:'long', hairColor:'#3a2a20', mood:'focus' }, RIVAL),
@@ -566,23 +669,19 @@ const SKILLS = {
   ram:  { name:'衝撞', en:'RAM',   dur:2.5, cd:10, hex:0xff8a2a, css:'#ff8a2a', desc:'2.5 秒內撞擊力加倍，被撞到的對手失控 0.6 秒。' },
   wall: { name:'鐵壁', en:'WALL',  dur:2.5, cd:10, hex:0xcfe0ff, css:'#cfe0ff', desc:'2.5 秒內重量 ×4、撞不動也不會失控，守住球門。' },
 };
-const KIT = [
-  { title:'王牌前鋒', kind:'攻擊手', st:{ spd:5, acc:4, pow:2, stb:2 }, skill:'boost' },
-  { title:'全能導引', kind:'全能型', st:{ spd:4, acc:4, pow:4, stb:3 }, skill:'ram' },
-  { title:'鐵壁守門', kind:'防守型', st:{ spd:2, acc:3, pow:5, stb:5 }, skill:'wall' },
-];
 const OPP_KIT = [
   { name:'疾影', title:'突擊前鋒', kind:'攻擊手', st:{ spd:4, acc:5, pow:2, stb:2 }, skill:'boost' },
   { name:'鐵角', title:'衝鋒導引', kind:'衝撞型', st:{ spd:4, acc:3, pow:5, stb:3 }, skill:'ram' },
   { name:'石牆', title:'重裝守門', kind:'防守型', st:{ spd:3, acc:3, pow:4, stb:5 }, skill:'wall' },
 ];
 const STAT_NAMES = [['spd', '速度'], ['acc', '靈敏'], ['pow', '衝撞'], ['stb', '穩定']];
-const kitOf = (t, i) => t === S.team ? KIT[i] : OPP_KIT[i];
+const kitOf = (t, i) => t === S.team ? ROSTER[S.lineup[i]] : OPP_KIT[i];
 const esc = v => String(v).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
 const faceURL = cfg => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(chibiSVG(cfg).replace('viewBox="0 0 200 300" width="200" height="300"', 'viewBox="26 14 148 136" width="148" height="136"'));
 const svgURL = cfg => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(chibiSVG(cfg));
-const crewCfg = (t, i) => Object.assign({ id:'c' + t + i }, t === S.team ? CREW[i] : OPP[i]);
-const nameOf = (t, i) => t === S.team ? (S.names[i] || `飛手 ${i + 1}`) : OPP_KIT[i].name;
+const crewCfg = (t, i) => Object.assign({ id:'c' + t + i }, t === S.team ? ROSTER[S.lineup[i]].look : OPP[i]);
+const rName = k => S.names[k] || `飛手 ${k + 1}`;
+const nameOf = (t, i) => t === S.team ? rName(S.lineup[i]) : OPP_KIT[i].name;
 const pilotName = d => nameOf(d.team, d.idx);
 
 const DIFF = [{ spd:0.62, react:0.75 }, { spd:0.8, react:1 }, { spd:0.95, react:1.35 }];
@@ -590,10 +689,12 @@ const dirOf = t => t === 0 ? 1 : -1;  // red attacks +x
 
 /* ---------------- Settings ---------------- */
 const DEF = { arena:'B', team:0, role:'striker', setSec:180, diff:1, flight:'assist', input:'keyboard',
-  deadzone:0.06, expo:0.25, center:[128,128,128,128], names:['飛手一','飛手二','飛手三'], arcade:true,
+  deadzone:0.06, expo:0.25, center:[128,128,128,128], names:['飛手一','飛手二','飛手三','飛手四','飛手五','飛手六','飛手七','飛手八','飛手九','飛手十'], lineup:[0,1,2], arcade:true,
   map:{ thr:{a:1,inv:true}, yaw:{a:0,inv:false}, pitch:{a:3,inv:true}, roll:{a:2,inv:false} } };
 let S = JSON.parse(JSON.stringify(DEF));
 try { const s = JSON.parse(localStorage.getItem('skyfence3v3') || 'null'); if (s) S = Object.assign(S, s); } catch (e) {}
+while (S.names.length < DEF.names.length) S.names.push(DEF.names[S.names.length]);
+if (!Array.isArray(S.lineup) || S.lineup.length !== 3 || new Set(S.lineup).size !== 3 || S.lineup.some(k => !(k >= 0 && k < 10))) S.lineup = [0, 1, 2];
 const save = () => { try { localStorage.setItem('skyfence3v3', JSON.stringify(S)); } catch (e) {} };
 
 /* ---------------- Renderer ---------------- */
@@ -909,15 +1010,16 @@ function buildPilots() {
 function buildCrew() {
   const row = $('#crew'); if (!row) return;
   row.innerHTML = '';
-  for (let i = 0; i < 3; i++) {
+  ROSTER.forEach((r, k) => {
     const card = document.createElement('div');
-    card.className = 'pilot' + (S.role === ROLES[i] ? ' on' : '');
-    card.innerHTML = `<img alt="" src="${svgURL(Object.assign({ id:'m' + i }, CREW[i]))}"><div class="rl">${ROLE_NAME[ROLES[i]].toUpperCase()}</div>
-      <input id="name-${i}" maxlength="10" aria-label="${ROLE_NAME[ROLES[i]]} 飛手名字"><div class="ds">${KIT[i].title}・${SKILLS[KIT[i].skill].name}<br>${CREW[i].desc}</div>`;
-    const inp = card.querySelector('input'); inp.value = S.names[i] || '';
-    inp.addEventListener('input', () => { S.names[i] = inp.value.trim(); save(); if (M.user && M.user.team === S.team && M.user.idx === i) setUser(M.user); buildSquads(); });
+    const pos = S.lineup.indexOf(k);
+    card.className = 'pilot' + (pos >= 0 ? ' on' : '');
+    card.innerHTML = `<img alt="" src="${faceURL(Object.assign({ id:'m' + k }, r.look))}"><div class="rl" style="color:${TYPES[r.type].css}">${r.title}${pos >= 0 ? `<em>${ROLE_NAME[ROLES[pos]]}</em>` : ''}</div>
+      <input id="name-${k}" maxlength="10" aria-label="${r.title} 飛手名字"><div class="ds">${r.kind}・${SKILLS[r.skill].name}・${r.desc}</div>`;
+    const inp = card.querySelector('input'); inp.value = S.names[k] || '';
+    inp.addEventListener('input', () => { S.names[k] = inp.value.trim(); save(); if (M.user) setUser(M.user); buildSquads(); });
     row.appendChild(card);
-  }
+  });
 }
 
 function makeTeams() {
@@ -1246,6 +1348,11 @@ addEventListener('keydown', e => {
     if (e.repeat) return;
     if (e.code === 'ArrowLeft' || e.code === 'KeyA') selMove(-1);
     else if (e.code === 'ArrowRight' || e.code === 'KeyD') selMove(1);
+    else if (e.code === 'ArrowUp' || e.code === 'KeyW') selMove(-5);
+    else if (e.code === 'ArrowDown' || e.code === 'KeyS') selMove(5);
+    else if (e.code === 'KeyQ') selPos(SEL.pos - 1);
+    else if (e.code === 'KeyE') selPos(SEL.pos + 1);
+    else if (e.code === 'Digit1' || e.code === 'Digit2' || e.code === 'Digit3') selPos(+e.code.slice(5) - 1);
     else if (e.code === 'Enter' || e.code === 'Space') confirmSelect(false);
     else if (e.code === 'Escape') closeSelect();
     return;
@@ -1309,7 +1416,9 @@ function pollGamepad() {
   const btn = p.buttons.map(b => b.pressed);
   const edge = i => btn[i] && !GP.prev[i];
   if (selOpen()) {
-    if (edge(14)) selMove(-1); if (edge(15)) selMove(1); if (edge(0) || edge(9)) confirmSelect(false); if (edge(1)) closeSelect();
+    if (edge(14)) selMove(-1); if (edge(15)) selMove(1); if (edge(12)) selMove(-5); if (edge(13)) selMove(5);
+    if (edge(4)) selPos(SEL.pos - 1); if (edge(5)) selPos(SEL.pos + 1);
+    if (edge(0) || edge(9)) confirmSelect(false); if (edge(1)) closeSelect();
     const ax = p.axes[0] || 0; if (Math.abs(ax) > 0.6 && !GP.stick) { selMove(ax > 0 ? 1 : -1); GP.stick = true; } else if (Math.abs(ax) < 0.3) GP.stick = false;
   } else {
     if (edge(9)) onStartButton(); if (edge(8)) switchDrone(1); if (edge(3)) cycleCam(); if (edge(2)) toggleFlight();
@@ -1374,6 +1483,10 @@ function parseLine(l) {
   if (selOpen()) {
     if (pressed & 0x0080) selMove(-1);
     if (pressed & 0x0020) selMove(1);
+    if (pressed & 0x0010) selMove(-5);
+    if (pressed & 0x0040) selMove(5);
+    if (pressed & 0x0400) selPos(SEL.pos - 1);
+    if (pressed & 0x0800) selPos(SEL.pos + 1);
     if (pressed & (0x4000 | 0x0008)) confirmSelect(false);
     if (pressed & 0x2000) closeSelect();
     return;
@@ -1594,37 +1707,83 @@ function gameLogic(dt) {
 }
 
 /* ---------------- Pilot select ---------------- */
-const SEL = { idx:0 };
+const SEL = { cur:0, pos:0, lineup:[0, 1, 2] };
 const selOpen = () => !$('#select').hidden;
+const POS_WANT = ['atk', 'all', 'def'];
+function lineupFor(cur, pos) {
+  const L = SEL.lineup.slice(); L[pos] = cur;
+  for (let p = 0; p < 3; p++) if (p !== pos && (L[p] === cur || L.indexOf(L[p]) !== p)) L[p] = -1;
+  for (let p = 0; p < 3; p++) if (L[p] === -1) {
+    let c = ROSTER.findIndex((r, k) => r.type === POS_WANT[p] && !L.includes(k));
+    if (c < 0) c = ROSTER.findIndex((r, k) => !L.includes(k));
+    L[p] = c;
+  }
+  return L;
+}
 function openSelect() {
   audioInit();
-  SEL.idx = Math.max(0, ROLES.indexOf(S.role));
-  const row = $('#selRow'); row.innerHTML = '';
-  for (let i = 0; i < 3; i++) {
-    const k = KIT[i], sk = SKILLS[k.skill];
-    const c = document.createElement('button'); c.type = 'button'; c.className = 'ch'; c.id = 'ch-' + i;
-    c.setAttribute('aria-label', `${nameOf(S.team, i)}，${k.title}，技能${sk.name}`);
-    c.innerHTML = `<div class="ch-art"><span class="ch-tag">${ROLE_NAME[ROLES[i]].toUpperCase()}</span><span class="ch-p1">P1</span><img alt="" src="${svgURL(Object.assign({ id:'s' + i }, CREW[i]))}"></div>
-      <div class="ch-body"><div class="ch-name">${esc(nameOf(S.team, i))}</div><div class="ch-title">${k.title}・${k.kind}</div>
-      <div class="ch-stats">${STAT_NAMES.map(([key, lab]) => `<div><span>${lab}</span><i>${[1, 2, 3, 4, 5].map(n => `<b class="${n <= k.st[key] ? 'f' : ''}"></b>`).join('')}</i></div>`).join('')}</div>
-      <div class="ch-skill"><b style="color:${sk.css}">${sk.name} ${sk.en}</b><span>${sk.desc}</span></div></div>`;
-    c.addEventListener('click', () => { if (SEL.idx === i) confirmSelect(); else selMove(i - SEL.idx); });
-    row.appendChild(c);
-  }
+  SEL.lineup = S.lineup.slice();
+  const p = ROLES.indexOf(S.role);
+  SEL.pos = p >= 0 ? p : 0; SEL.cur = SEL.lineup[SEL.pos];
+  const grid = $('#selGrid'); grid.innerHTML = '';
+  ROSTER.forEach((r, k) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'gc'; b.id = 'gc-' + k;
+    b.setAttribute('aria-label', `${rName(k)}，${r.title}，${r.kind}`);
+    b.innerHTML = `<img alt="" src="${faceURL(Object.assign({ id:'g' + k }, r.look))}"><span class="ty" style="background:${TYPES[r.type].css}">${TYPES[r.type].ch}</span><span class="ps"></span><span class="nm">${esc(rName(k))}</span>`;
+    b.addEventListener('click', () => { if (SEL.cur === k) confirmSelect(false); else selPick(k, true); });
+    grid.appendChild(b);
+  });
   $('#selOpp').innerHTML = `<span>對手</span>` + [0, 1, 2].map(i => `<img alt="${esc(OPP_KIT[i].name)}" title="${esc(OPP_KIT[i].name)}・${OPP_KIT[i].title}" src="${faceURL(crewCfg(1 - S.team, i))}">`).join('') + `<span>${OPP_KIT.map(o => o.name).join('・')}</span>`;
   $('#select').classList.toggle('flat', !S.arcade); $('#flatNote').hidden = S.arcade;
   $('#menu').hidden = true; $('#select').hidden = false;
-  selMove(0);
+  renderSelect();
 }
-function selMove(step) {
-  SEL.idx = (SEL.idx + step + 3) % 3;
-  for (let i = 0; i < 3; i++) $('#ch-' + i).classList.toggle('sel', i === SEL.idx);
-  if (step) beep(880, 0.04, 'square', 0.04);
-  const el = $('#ch-' + SEL.idx); if (el && el.focus) el.focus({ preventScroll:true });
+function selPick(k, natural) {
+  SEL.cur = k;
+  if (natural) SEL.pos = TYPES[ROSTER[k].type].pos;
+  SEL.lineup = lineupFor(SEL.cur, SEL.pos);
+  beep(880, 0.04, 'square', 0.04);
+  renderSelect();
+}
+function selMove(step) { selPick((SEL.cur + step + ROSTER.length) % ROSTER.length, true); }
+function selPos(p) {
+  SEL.pos = (p + 3) % 3; SEL.lineup = lineupFor(SEL.cur, SEL.pos);
+  beep(660, 0.05, 'square', 0.04); renderSelect();
+}
+function selMate(p, step) {
+  if (p === SEL.pos) return;
+  let k = SEL.lineup[p];
+  for (let n = 0; n < ROSTER.length; n++) { k = (k + step + ROSTER.length) % ROSTER.length; if (!SEL.lineup.includes(k)) break; }
+  SEL.lineup[p] = k; beep(740, 0.04, 'square', 0.04); renderSelect();
+}
+function renderSelect() {
+  const r = ROSTER[SEL.cur], sk = SKILLS[r.skill];
+  $('#selDetail').innerHTML = `<div class="ch-art"><span class="ch-tag">${ROLE_NAME[ROLES[SEL.pos]].toUpperCase()}</span><span class="ch-p1">P1</span><img alt="" src="${svgURL(Object.assign({ id:'d' + SEL.cur }, r.look))}"></div>
+    <div class="ch-body"><div class="ch-name">${esc(rName(SEL.cur))}</div><div class="ch-title">${r.title}・<span style="color:${TYPES[r.type].css}">${r.kind}</span>・${r.desc}</div>
+    <div class="ch-stats">${STAT_NAMES.map(([key, lab]) => `<div><span>${lab}</span><i>${[1, 2, 3, 4, 5].map(n => `<b class="${n <= r.st[key] ? 'f' : ''}"></b>`).join('')}</i></div>`).join('')}</div>
+    <div class="ch-skill"><b style="color:${sk.css}">${sk.name} ${sk.en}</b><span>${sk.desc}</span></div></div>`;
+  ROSTER.forEach((_, k) => {
+    const b = $('#gc-' + k); if (!b) return;
+    const p = SEL.lineup.indexOf(k);
+    b.classList.toggle('sel', k === SEL.cur); b.classList.toggle('mate', p >= 0 && k !== SEL.cur);
+    b.querySelector('.ps').textContent = p >= 0 ? ROLE_NAME[ROLES[p]][0] : '';
+  });
+  const cur = $('#gc-' + SEL.cur); if (cur && cur.focus) cur.focus({ preventScroll:true });
+  $('#selPos').innerHTML = ROLES.map((role, p) => `<button type="button" class="${p === SEL.pos ? 'on' : ''}" data-p="${p}">${ROLE_NAME[role]}</button>`).join('');
+  $('#selPos').querySelectorAll('button').forEach(b => b.addEventListener('click', () => selPos(+b.dataset.p)));
+  $('#selLineup').innerHTML = ROLES.map((role, p) => {
+    const k = SEL.lineup[p], me = p === SEL.pos;
+    return `<div class="ls${me ? ' me' : ''}"><span class="lr">${ROLE_NAME[role]}</span>
+      <img alt="" src="${faceURL(Object.assign({ id:'l' + k }, ROSTER[k].look))}">
+      <span class="ln">${esc(rName(k))}${me ? '（你）' : ''}</span>
+      ${me ? '<span class="lt">P1</span>' : `<span class="la"><button type="button" data-p="${p}" data-s="-1" aria-label="上一位隊友">‹</button><button type="button" data-p="${p}" data-s="1" aria-label="下一位隊友">›</button></span>`}</div>`;
+  }).join('');
+  $('#selLineup').querySelectorAll('.la button').forEach(b => b.addEventListener('click', () => selMate(+b.dataset.p, +b.dataset.s)));
 }
 function confirmSelect(spectate) {
   if (!selOpen()) return;
-  S.role = spectate ? 'spectate' : ROLES[SEL.idx]; save(); buildCrew();
+  S.lineup = SEL.lineup.slice();
+  S.role = spectate ? 'spectate' : ROLES[SEL.pos]; save(); buildCrew();
   $('#select').hidden = true;
   needRestart = false; $('#footNote').textContent = '按 Esc 隨時回到這裡。';
   newMatch();
