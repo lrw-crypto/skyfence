@@ -58,7 +58,40 @@ body{background:var(--bg);color:var(--text);font-family:var(--f-body);overflow:h
 .chip{font-size:12px;padding:2px 10px;border-radius:99px;background:var(--panel);border:1px solid var(--amber);color:var(--amber);font-weight:500}
 #toast{font-size:13px;color:var(--text);background:var(--panel);border:1px solid var(--line);padding:3px 12px;border-radius:6px;opacity:0;transition:opacity .25s}
 #toast.on{opacity:1}
-#center{display:grid;place-items:center;text-align:center}
+#center{display:grid;grid-template-rows:minmax(0,1fr) auto;place-items:center;text-align:center;gap:10px;padding-bottom:6px}
+/* practice HUD */
+#pboard{display:flex;align-items:stretch;background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden;font-family:var(--f-display);font-variant-numeric:tabular-nums}
+#pboard > div{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:4px 16px;min-width:84px}
+#pboard > div + div{border-left:1px solid var(--line)}
+#pboard b{font-size:34px;font-weight:800;line-height:1.05}
+#pboard small{font-family:var(--f-body);font-size:11px;color:var(--muted);letter-spacing:.04em}
+#pbRings b{color:var(--amber)}
+#pbTime b.low{color:var(--red)}
+#phint{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;min-height:44px}
+.hint{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:5px 12px 5px 6px}
+.hint .ic{display:grid;place-items:center;width:32px;height:32px;border-radius:8px;background:var(--amber);color:#1b1306;font-size:20px;font-weight:800;line-height:1}
+.hint.sub .ic{background:#3a4a5e;color:var(--text)}
+.hint b{font-size:16px;font-weight:700;color:var(--text)}
+.hint kbd{font-family:var(--f-mono);font-size:11px;padding:0 5px;border:1px solid var(--line);border-radius:3px;color:var(--muted);background:#0d131b}
+.hint span{font-size:11.5px;color:var(--muted)}
+#pSplit{font-family:var(--f-display);font-size:22px;font-weight:700;color:var(--ok);opacity:0;transition:opacity .3s}
+#pSplit.on{opacity:1}
+/* practice card in menu */
+.practice{grid-column:1/-1;border-color:#3b4c63;background:linear-gradient(110deg,#13202f 0%,#101720 60%)}
+.practice h2 em{font-style:normal;color:var(--amber)}
+.pr-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:14px 22px;align-items:start}
+.pr-faces{display:flex;gap:6px;flex-wrap:wrap}
+.pr-faces label{position:relative}
+.pr-faces input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.pr-faces img{width:44px;height:41px;object-fit:cover;border-radius:8px;border:2px solid var(--line);background:#1a2738;display:block;cursor:pointer}
+.pr-faces input:checked + img{border-color:var(--amber);box-shadow:0 0 0 2px rgba(255,182,39,.3)}
+.pr-faces input:focus-visible + img{outline:2px solid var(--amber);outline-offset:2px}
+.pr-go{display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.pr-best{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.pr-best b{color:var(--text);font-weight:500}
+.pr-learn{display:flex;gap:6px;flex-wrap:wrap}
+.pr-learn span{font-size:12px;padding:2px 9px;border-radius:99px;border:1px solid var(--line);color:#c3cdd9}
+@media (max-width:860px){.pr-grid{grid-template-columns:minmax(0,1fr)}}
 #banner{font-family:var(--f-display);font-weight:800;font-size:clamp(34px,7vw,76px);letter-spacing:.06em;line-height:1;
   text-shadow:0 4px 24px rgba(0,0,0,.6);opacity:0;transform:scale(.96);transition:opacity .2s,transform .2s}
 #banner.on{opacity:1;transform:none}
@@ -283,10 +316,17 @@ details li{margin-bottom:4px}
     </div>
     <div class="squad r" id="sq1"></div>
    </div>
+    <div id="pboard" hidden>
+      <div id="pbTime"><b>1:00</b><small>剩餘時間</small></div>
+      <div id="pbRings"><b>0</b><small>穿環數</small></div>
+      <div id="pbBest"><b>—</b><small>最佳紀錄</small></div>
+      <div id="pbLevel"><b>入門</b><small>難度</small></div>
+    </div>
+    <div id="pSplit"></div>
     <div id="chips"></div>
     <div id="toast"></div>
   </div>
-  <div id="center"><div id="banner"></div></div>
+  <div id="center"><div id="banner"></div><div id="phint" hidden></div></div>
   <div id="bottom">
     <div class="pane" id="inp">
       <div class="me-card"><img id="hudFace" alt="" hidden><div id="skillBox" hidden><b id="skName">—</b><i><s id="skBar"></s></i><span>Space ／ ✕</span></div></div>
@@ -314,6 +354,32 @@ details li{margin-bottom:4px}
       </div>
       <div class="spec" id="specLine"></div>
     </div>
+
+    <section class="card practice" aria-labelledby="h-prac">
+      <h2 id="h-prac"><em>新手上路</em>　單人穿環練習<small>計時穿過發光的環，熟悉上下、左右、前進與旋轉</small></h2>
+      <div class="pr-grid">
+        <div class="card" style="padding:0;border:0;background:none;gap:10px">
+          <div class="row"><span>練習時間</span><div class="seg">
+            <label><input type="radio" name="pdur" id="pd-60" value="60"><span>1 分鐘</span></label>
+            <label><input type="radio" name="pdur" id="pd-180" value="180"><span>3 分鐘</span></label>
+            <label><input type="radio" name="pdur" id="pd-0" value="0"><span>自由練習（不計時）</span></label></div></div>
+          <div class="row"><span>難度</span><div class="seg">
+            <label><input type="radio" name="plevel" id="pl-0" value="0"><span>入門・大環</span></label>
+            <label><input type="radio" name="plevel" id="pl-1" value="1"><span>標準</span></label>
+            <label><input type="radio" name="plevel" id="pl-2" value="2"><span>挑戰・小環要照箭頭</span></label></div></div>
+          <div class="row"><span>操作提示</span><div class="seg">
+            <label><input type="radio" name="phints" id="ph-1" value="1"><span>顯示</span></label>
+            <label><input type="radio" name="phints" id="ph-0" value="0"><span>關閉</span></label></div></div>
+          <div class="row"><span>練習飛手</span><div class="pr-faces" id="prFaces"></div></div>
+        </div>
+        <div class="pr-go">
+          <div class="pr-learn"><span>↑↓ 油門升降</span><span>↻ 偏航旋轉</span><span>前進／後退</span><span>左右平移</span></div>
+          <p class="note" style="margin:0">入門難度會依序帶你練：直飛 → 上升 → 下降 → 左移 → 右移 → 轉彎，之後隨機出題。畫面下方會即時提示下一步要推哪支桿。</p>
+          <div class="pr-best" id="prBest"></div>
+          <button class="primary" id="btnPractice">開始穿環練習</button>
+        </div>
+      </div>
+    </section>
 
     <section class="crew" aria-labelledby="h-crew">
       <h2 id="h-crew">飛手名單<small>10 位飛手，名字可以直接修改；開始比賽後在選角畫面挑人與排陣容</small></h2>
@@ -675,13 +741,14 @@ const OPP_KIT = [
   { name:'石牆', title:'重裝守門', kind:'防守型', st:{ spd:3, acc:3, pow:4, stb:5 }, skill:'wall' },
 ];
 const STAT_NAMES = [['spd', '速度'], ['acc', '靈敏'], ['pow', '衝撞'], ['stb', '穩定']];
-const kitOf = (t, i) => t === S.team ? ROSTER[S.lineup[i]] : OPP_KIT[i];
+const slotK = i => M.mode === 'practice' ? S.pK : S.lineup[i];
+const kitOf = (t, i) => t === S.team ? ROSTER[slotK(i)] : OPP_KIT[i];
 const esc = v => String(v).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
 const faceURL = cfg => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(chibiSVG(cfg).replace('viewBox="0 0 200 300" width="200" height="300"', 'viewBox="26 14 148 136" width="148" height="136"'));
 const svgURL = cfg => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(chibiSVG(cfg));
-const crewCfg = (t, i) => Object.assign({ id:'c' + t + i }, t === S.team ? ROSTER[S.lineup[i]].look : OPP[i]);
+const crewCfg = (t, i) => Object.assign({ id:'c' + t + i }, t === S.team ? ROSTER[slotK(i)].look : OPP[i]);
 const rName = k => S.names[k] || `飛手 ${k + 1}`;
-const nameOf = (t, i) => t === S.team ? rName(S.lineup[i]) : OPP_KIT[i].name;
+const nameOf = (t, i) => t === S.team ? rName(slotK(i)) : OPP_KIT[i].name;
 const pilotName = d => nameOf(d.team, d.idx);
 
 const DIFF = [{ spd:0.62, react:0.75 }, { spd:0.8, react:1 }, { spd:0.95, react:1.35 }];
@@ -689,11 +756,13 @@ const dirOf = t => t === 0 ? 1 : -1;  // red attacks +x
 
 /* ---------------- Settings ---------------- */
 const DEF = { arena:'B', team:0, role:'striker', setSec:180, diff:1, flight:'assist', input:'keyboard',
-  deadzone:0.06, expo:0.25, center:[128,128,128,128], names:['飛手一','飛手二','飛手三','飛手四','飛手五','飛手六','飛手七','飛手八','飛手九','飛手十'], lineup:[0,1,2], arcade:true,
+  deadzone:0.06, expo:0.25, center:[128,128,128,128], names:['飛手一','飛手二','飛手三','飛手四','飛手五','飛手六','飛手七','飛手八','飛手九','飛手十'], lineup:[0,1,2], arcade:true, pDur:60, pLevel:0, pHints:true, pK:0, best:{},
   map:{ thr:{a:1,inv:true}, yaw:{a:0,inv:false}, pitch:{a:3,inv:true}, roll:{a:2,inv:false} } };
 let S = JSON.parse(JSON.stringify(DEF));
 try { const s = JSON.parse(localStorage.getItem('skyfence3v3') || 'null'); if (s) S = Object.assign(S, s); } catch (e) {}
 while (S.names.length < DEF.names.length) S.names.push(DEF.names[S.names.length]);
+if (!S.best || typeof S.best !== 'object') S.best = {};
+if (!(S.pK >= 0 && S.pK < 10)) S.pK = 0;
 if (!Array.isArray(S.lineup) || S.lineup.length !== 3 || new Set(S.lineup).size !== 3 || S.lineup.some(k => !(k >= 0 && k < 10))) S.lineup = [0, 1, 2];
 const save = () => { try { localStorage.setItem('skyfence3v3', JSON.stringify(S)); } catch (e) {} };
 
@@ -785,8 +854,9 @@ function buildArena() {
     ring.rotation.y = Math.PI / 2; ring.position.set(x, A.ringY, 0); ring.castShadow = true; grp.add(ring);
     const top = A.ringY + A.ringOuter / 2;
     const cg = new THREE.BufferGeometry().setFromPoints([new V3(x, top, -0.12 * A.cs), new V3(x, A.H, -0.4 * A.cs), new V3(x, top, 0.12 * A.cs), new V3(x, A.H, 0.4 * A.cs)]);
-    grp.add(new THREE.LineSegments(cg, new THREE.LineBasicMaterial({ color:0x8b97a6 })));
-    rings.push({ team:t, x, y:A.ringY, mesh:ring, mat });
+    const cable = new THREE.LineSegments(cg, new THREE.LineBasicMaterial({ color:0x8b97a6 }));
+    grp.add(cable);
+    rings.push({ team:t, x, y:A.ringY, mesh:ring, mat, cable });
   }
   // pilot areas outside the short sides
   for (let t = 0; t < 2; t++) {
@@ -870,12 +940,13 @@ const _e = new THREE.Euler(0, 0, 0, 'YZX'), _up = new V3(), _n = new V3(), _q = 
 
 // character stats -> physics (competitive mode: everything equal, no skills)
 function applyChar(d) {
-  const k = kitOf(d.team, d.idx), st = S.arcade ? k.st : { spd:3.5, acc:3.5, pow:3.5, stb:3.5 };
+  const k = kitOf(d.team, d.idx), flat = !S.arcade || M.mode === 'practice';
+  const st = flat ? { spd:3.5, acc:3.5, pow:3.5, stb:3.5 } : k.st;
   d.spdMul = 1 + (st.spd - 3.5) * 0.08;
   d.tau = 0.07 * (1 - (st.acc - 3.5) * 0.1);
   d.mass = 1 + (st.pow - 3.5) * 0.22;
   d.stb = 1 + (st.stb - 3.5) * 0.2;
-  d.skill = S.arcade ? k.skill : null; d.skillT = 0; d.cd = 0;
+  d.skill = flat ? null : k.skill; d.skillT = 0; d.cd = 0;
 }
 const active = (d, sk) => d.skill === sk && d.skillT > 0;
 const dragOf = d => A.drag / (d.spdMul * (active(d, 'boost') ? 1.45 : 1));
@@ -892,6 +963,10 @@ function forceStun(d, s) {
   d.stun = 0.6; d.wobP = (Math.random() - 0.5) * Math.max(s, 1.5) * 4; d.wobR = (Math.random() - 0.5) * Math.max(s, 1.5) * 4;
 }
 
+function wallHit(d, s) {
+  impact(d, s);
+  if (M.mode === 'practice' && s > 0.6 && P.t - P.lastHit > 0.5) { P.hits++; P.lastHit = P.t; }
+}
 function impact(d, s) {
   if (active(d, 'wall')) return;
   if (s > A.impact * d.stb) { d.stun = 0.3; d.wobP = (Math.random() - 0.5) * s * 3; d.wobR = (Math.random() - 0.5) * s * 3; }
@@ -928,13 +1003,13 @@ function stepDrone(d, dt) {
   // floor, ceiling, net walls
   if (p.y < r) { p.y = r; if (v.y < 0) { impact(d, -v.y); v.y = -v.y * 0.2; } v.x *= 1 - 6 * dt; v.z *= 1 - 6 * dt; }
   const top = A.H - r, hl = A.L / 2 - r, hw = A.W / 2 - r;
-  if (p.y > top) { p.y = top; if (v.y > 0) { impact(d, v.y); v.y *= -0.3; } }
-  if (p.x > hl) { p.x = hl; if (v.x > 0) { impact(d, v.x); v.x *= -0.35; } }
-  if (p.x < -hl) { p.x = -hl; if (v.x < 0) { impact(d, -v.x); v.x *= -0.35; } }
-  if (p.z > hw) { p.z = hw; if (v.z > 0) { impact(d, v.z); v.z *= -0.35; } }
-  if (p.z < -hw) { p.z = -hw; if (v.z < 0) { impact(d, -v.z); v.z *= -0.35; } }
+  if (p.y > top) { p.y = top; if (v.y > 0) { wallHit(d, v.y); v.y *= -0.3; } }
+  if (p.x > hl) { p.x = hl; if (v.x > 0) { wallHit(d, v.x); v.x *= -0.35; } }
+  if (p.x < -hl) { p.x = -hl; if (v.x < 0) { wallHit(d, -v.x); v.x *= -0.35; } }
+  if (p.z > hw) { p.z = hw; if (v.z > 0) { wallHit(d, v.z); v.z *= -0.35; } }
+  if (p.z < -hw) { p.z = -hw; if (v.z < 0) { wallHit(d, -v.z); v.z *= -0.35; } }
   // goal ring torus collision
-  for (const R of rings) {
+  if (M.mode !== 'practice') for (const R of rings) {
     const dy = p.y - R.y, dz = p.z, rho = Math.hypot(dy, dz);
     if (rho < 1e-6) continue;
     _q.set(R.x, R.y + dy / rho * A.Rm, dz / rho * A.Rm);
@@ -973,7 +1048,7 @@ function collidePairs() {
 }
 
 /* ---------------- Match state ---------------- */
-const M = { phase:'menu', setNo:1, clock:180, goals:[0,0], setWins:[0,0], results:[], mustReturn:[false,false],
+const M = { mode:'match', phase:'menu', setNo:1, clock:180, goals:[0,0], setWins:[0,0], results:[], mustReturn:[false,false],
   t:0, armDelay:4, penalty:null, ot:false, wait:null, paused:false, started:false, cam:0, user:null, userSaved:null };
 
 // chibi pilots standing in the pilot areas
@@ -1033,7 +1108,7 @@ function setUser(d) {
   if (M.user) { M.user.ai = true; M.user.marker.visible = false; }
   M.user = d;
   if (d) { d.ai = false; d.marker.visible = true; }
-  $('#hudCtl').textContent = d ? `${pilotName(d)}（${TEAMS[d.team].name} ${ROLE_NAME[d.role]}）` : '觀戰（全 AI）';
+  $('#hudCtl').textContent = d ? (M.mode === 'practice' ? `${pilotName(d)}（單人穿環練習）` : `${pilotName(d)}（${TEAMS[d.team].name} ${ROLE_NAME[d.role]}）`) : '觀戰（全 AI）';
   const face = $('#hudFace');
   if (d) { const u = svgURL(crewCfg(d.team, d.idx)); if (face.dataset.u !== u) { face.src = u; face.dataset.u = u; } face.hidden = false; } else face.hidden = true;
   $('#skillBox').hidden = !(d && d.skill);
@@ -1100,11 +1175,273 @@ function startArming() {
 }
 
 function newMatch() {
+  clearPracticeObjects(); M.mode = 'match'; practiceModeUI(false);
   Object.assign(M, { setNo:1, clock:S.setSec, goals:[0,0], setWins:[0,0], results:[], ot:false, penalty:null, wait:null, paused:false, started:true, userSaved:null });
   buildArena(); makeTeams();
   if (!M.camChosen) { M.cam = M.user ? 0 : 2; $('#hudCam').textContent = CAMS[M.cam]; }
   showVS();
 }
+/* ---------------- Solo ring practice ---------------- */
+const P = { t:0, dur:60, level:0, count:0, hits:0, lastHit:-9, step:0, rings:[], fx:[], lastPass:0, splits:[], guide:null, arrow:null, newBest:false };
+const P_LEVELS = [
+  { name:'入門', inner:0.90, turn:45,  dist:[1.3, 2.0], dy:0.5, yawJit:0,  dirReq:false },
+  { name:'標準', inner:0.62, turn:95,  dist:[1.4, 2.4], dy:0.8, yawJit:20, dirReq:false },
+  { name:'挑戰', inner:0.42, turn:150, dist:[1.5, 2.6], dy:1.0, yawJit:45, dirReq:true },
+];
+// guided lesson order for the beginner level
+const LESSON = ['fwd', 'up', 'down', 'left', 'right', 'turnR', 'turnL', 'fwd'];
+const bestKey = () => `${S.arena}-${S.pDur}-${S.pLevel}`;
+const _ra = new V3(), _rb = new V3(), _rc = new V3();
+
+function ringDims() {
+  const L = P_LEVELS[P.level], cs = A.cs;
+  const inner = L.inner * cs, rt = 0.045 * cs;
+  return { inner, rt, Rm:inner / 2 + rt, outer:inner + rt * 4 };
+}
+function makeRingMesh(spec, active) {
+  const dm = ringDims();
+  const g = new THREE.Group();
+  const mat = new THREE.MeshStandardMaterial({ color:0xffb627, emissive:0xffb627, emissiveIntensity:0.9, roughness:0.4, transparent:true, opacity:1 });
+  const tor = new THREE.Mesh(new THREE.TorusGeometry(dm.Rm, dm.rt, 14, 56), mat);
+  g.add(tor);
+  if (P_LEVELS[P.level].dirReq) {
+    const cone = new THREE.Mesh(new THREE.ConeGeometry(dm.inner * 0.14, dm.inner * 0.3, 12), new THREE.MeshBasicMaterial({ color:0xffffff, transparent:true, opacity:0.85 }));
+    cone.rotation.x = Math.PI / 2; cone.position.z = dm.inner * 0.05; g.add(cone);
+  }
+  g.position.copy(spec.pos); g.rotation.y = spec.yaw + Math.PI / 2;
+  scene.add(g);
+  return Object.assign(spec, { g, mat, dm });
+}
+function setRingLook(R, active) {
+  R.mat.color.setHex(active ? 0xffb627 : 0xcfd8e3);
+  R.mat.emissive.setHex(active ? 0xffb627 : 0x223040);
+  R.mat.emissiveIntensity = active ? 0.9 : 0.4;
+  R.mat.opacity = active ? 1 : 0.35;
+  R.g.children.forEach(c => { if (c.geometry && c.geometry.type === 'ConeGeometry') c.visible = active; });
+}
+const ringAxis = R => _ra.set(Math.cos(R.yaw), 0, -Math.sin(R.yaw));
+function ringFits(pos) {
+  const dm = ringDims(), m = dm.outer / 2 + 0.12 * A.cs;
+  return Math.abs(pos.x) <= A.L / 2 - m && Math.abs(pos.z) <= A.W / 2 - m && pos.y - dm.outer / 2 >= 0.18 * A.cs && pos.y + dm.outer / 2 <= A.H - 0.12 * A.cs;
+}
+function genRing(from, yaw0) {
+  const L = P_LEVELS[P.level], cs = A.cs;
+  const lesson = P.level === 0 && P.step < LESSON.length ? LESSON[P.step] : null;
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  const tries = [];
+  for (let n = 0; n < 40; n++) {
+    let kind = lesson || ['fwd', 'up', 'down', 'left', 'right', 'turnR', 'turnL', 'mix', 'mix'][Math.floor(Math.random() * 9)];
+    if (n >= 12 && lesson) kind = null;  // lesson didn't fit: fall back to random
+    const d = rnd(L.dist[0], L.dist[1]) * cs * (n > 25 ? 0.7 : 1);
+    let yaw = yaw0, dx = 0, dy = 0, lat = 0, fwd = d;
+    const sgn = n % 2 ? -1 : 1;
+    switch (kind) {
+      case 'fwd': break;
+      case 'up': dy = rnd(0.5, 1) * L.dy * cs; break;
+      case 'down': dy = -rnd(0.5, 1) * L.dy * cs; break;
+      case 'left': lat = -rnd(0.5, 0.9) * cs; fwd = d * 0.8; break;
+      case 'right': lat = rnd(0.5, 0.9) * cs; fwd = d * 0.8; break;
+      case 'turnR': yaw = yaw0 - rnd(0.6, 1) * Math.min(L.turn, 100) * DEG; break;
+      case 'turnL': yaw = yaw0 + rnd(0.6, 1) * Math.min(L.turn, 100) * DEG; break;
+      default: yaw = yaw0 + rnd(-1, 1) * L.turn * DEG; dy = rnd(-1, 1) * L.dy * cs; lat = rnd(-0.5, 0.5) * cs;
+    }
+    if (n >= 6 && n < 12 && lesson) { // mirror the lesson if blocked by the cage
+      if (kind === 'turnR' || kind === 'turnL') yaw = 2 * yaw0 - yaw;
+      lat = -lat; dy = -dy;
+    }
+    if (n >= 20 && n % 3 === 0) yaw = yaw0 + Math.PI + rnd(-0.4, 0.4); // turn back towards the middle
+    const mid = (yaw0 + yaw) / 2;
+    const pos = new V3(from.x + Math.cos(mid) * fwd + Math.sin(yaw0) * lat, from.y + dy, from.z - Math.sin(mid) * fwd + Math.cos(yaw0) * lat);
+    pos.y = clamp(pos.y, 0.55 * cs, A.H - 0.6 * cs);
+    const ry = wrapA(Math.atan2(-(pos.z - from.z), pos.x - from.x) + rnd(-1, 1) * L.yawJit * DEG);
+    if (ringFits(pos) && pos.distanceTo(from) > 0.9 * cs) { tries.push({ pos, yaw:(kind === 'left' || kind === 'right' || kind === 'up' || kind === 'down' || kind === 'fwd') && !L.yawJit ? yaw0 : ry, kind:kind || 'mix' }); break; }
+  }
+  if (!tries.length) {
+    const pos = new V3(0, A.H * 0.45, 0);
+    tries.push({ pos, yaw:Math.atan2(-(pos.z - from.z), pos.x - from.x), kind:'mix' });
+  }
+  P.step++;
+  return tries[0];
+}
+function clearPracticeObjects() {
+  for (const R of P.rings.concat(P.fx)) { scene.remove(R.g); R.g.traverse(o => { if (o.geometry) o.geometry.dispose(); }); }
+  P.rings = []; P.fx = [];
+  if (P.guide) { scene.remove(P.guide); P.guide.geometry.dispose(); P.guide = null; }
+}
+function practiceModeUI(on) {
+  $('#topRow').hidden = on; $('#pboard').hidden = !on; $('#phint').hidden = !on;
+  if (!on) { $('#pSplit').classList.remove('on'); }
+}
+function startPractice() {
+  audioInit();
+  clearPracticeObjects();
+  M.mode = 'practice';
+  Object.assign(M, { started:true, paused:false, goals:[0, 0], mustReturn:[false, false], penalty:null, wait:null, ot:false });
+  needRestart = false; $('#footNote').textContent = '按 Esc 隨時回到這裡。';
+  buildArena();
+  rings.forEach(R => { R.mesh.visible = false; R.cable.visible = false; });
+  drones.forEach(d => d.dispose());
+  const d = new Drone(S.team, 0); drones = [d]; applyChar(d);
+  buildPilots();
+  for (let t = 0; t < 2; t++) pilotSprites[t].forEach((sp, i) => sp.visible = t === S.team && i === 0);
+  buildSquads();
+  M.user = null; setUser(d); placeAtStart(d); d.pos.z = 0; d.prev.copy(d.pos);
+  Object.assign(P, { t:0, dur:S.pDur, level:S.pLevel, count:0, hits:0, lastHit:-9, step:0, lastPass:0, splits:[], newBest:false });
+  const first = { pos:new V3(d.pos.x + Math.cos(d.yaw) * 1.6 * A.cs, 1.15 * A.cs, 0), yaw:d.yaw, kind:'fwd' };
+  P.step = 1;
+  P.rings.push(makeRingMesh(first));
+  P.rings.push(makeRingMesh(genRing(first.pos, first.yaw)));
+  setRingLook(P.rings[0], true); setRingLook(P.rings[1], false);
+  const gg = new THREE.BufferGeometry().setFromPoints([new V3(), new V3()]);
+  P.guide = new THREE.Line(gg, new THREE.LineDashedMaterial({ color:0xffb627, dashSize:0.08 * A.cs, gapSize:0.06 * A.cs, transparent:true, opacity:0.7 }));
+  scene.add(P.guide);
+  practiceModeUI(true);
+  $('#pbLevel b').textContent = P_LEVELS[P.level].name;
+  const best = S.best[bestKey()];
+  $('#pbBest b').textContent = best != null ? best : '—';
+  if (!M.camChosen) { M.cam = 0; $('#hudCam').textContent = CAMS[M.cam]; }
+  $('#menu').hidden = true; $('#select').hidden = true; $('#vs').hidden = true;
+  M.phase = 'pcount'; M.t = 0; d.armed = false; P.lastCount = -1;
+}
+function practicePass(R) {
+  P.count++;
+  const split = P.t - P.lastPass; P.lastPass = P.t; P.splits.push(split);
+  const sp = $('#pSplit'); sp.textContent = `+1　${split.toFixed(1)} 秒`; sp.classList.add('on');
+  clearTimeout(practicePass.tm); practicePass.tm = setTimeout(() => sp.classList.remove('on'), 1200);
+  beepSeq([[660 + Math.min(P.count, 12) * 40, 0.06], [990 + Math.min(P.count, 12) * 40, 0.12]], 'sine');
+  R.mat.color.setHex(0x3ddc84); R.mat.emissive.setHex(0x3ddc84); R.fade = 0.5; P.fx.push(R);
+  P.rings.shift();
+  const nxt = P.rings[0]; setRingLook(nxt, true);
+  P.rings.push(makeRingMesh(genRing(nxt.pos, nxt.yaw))); setRingLook(P.rings[1], false);
+}
+function practiceStep(d) {
+  const R = P.rings[0]; if (!R) return;
+  const dm = R.dm;
+  for (const Q of P.rings) {  // torus collision against both visible rings
+    const ax = ringAxis(Q).clone();
+    _rb.subVectors(d.pos, Q.pos); const h = _rb.dot(ax);
+    _rc.copy(_rb).addScaledVector(ax, -h); const rho = _rc.length();
+    if (rho < 1e-6) continue;
+    _q.copy(Q.pos).addScaledVector(_rc, Q.dm.Rm / rho);
+    _n.subVectors(d.pos, _q); const dist = _n.length(), minD = Q.dm.rt + A.ballR;
+    if (dist < minD && dist > 1e-6) {
+      _n.multiplyScalar(1 / dist); d.pos.copy(_q).addScaledVector(_n, minD);
+      const vn = d.vel.dot(_n); if (vn < 0) { d.vel.addScaledVector(_n, -1.4 * vn); wallHit(d, -vn); }
+    }
+  }
+  const ax = ringAxis(R);
+  const h0 = _rb.subVectors(d.prev, R.pos).dot(ax), h1 = _rc.subVectors(d.pos, R.pos).dot(ax);
+  if ((h0 < 0 && h1 >= 0) || (h0 > 0 && h1 <= 0)) {
+    const t = h0 / (h0 - h1);
+    _rb.lerpVectors(d.prev, d.pos, t).sub(R.pos); _rb.addScaledVector(ax, -_rb.dot(ax));
+    if (_rb.length() < dm.inner / 2) {
+      if (P_LEVELS[P.level].dirReq && h1 < h0) { if (P.t - (P.dirWarn || -9) > 1.5) { P.dirWarn = P.t; toast('方向相反：請照箭頭方向穿過'); } return; }
+      practicePass(R);
+    }
+  }
+}
+function practiceLogic(dt) {
+  const d = M.user;
+  if (M.phase === 'pcount') {
+    M.t += dt;
+    const n = 3 - Math.floor(M.t);
+    if (n !== P.lastCount && n > 0) { P.lastCount = n; banner(String(n), '準備起飛　目標：穿過發光的環', 0, '#ffb627'); beep(660, 0.12, 'sine', 0.06); }
+    if (M.t >= 3) { M.phase = 'practice'; d.armed = true; banner('GO', '', 600, '#3ddc84'); beep(1250, 0.35, 'square', 0.07); }
+    return;
+  }
+  if (M.phase !== 'practice') return;
+  P.t += dt;
+  if (P.dur && P.t >= P.dur) endPractice();
+}
+function endPractice() {
+  M.phase = 'pover'; disarmAll();
+  const key = bestKey(), old = S.best[key];
+  if (P.dur) { if (old == null || P.count > old) { S.best[key] = P.count; P.newBest = old != null || P.count > 0; save(); } }
+  const avg = P.count ? (P.t / P.count).toFixed(1) : '—';
+  const fastest = P.splits.length ? Math.min(...P.splits).toFixed(1) : '—';
+  beepSeq([[523, 0.15], [659, 0.15], [784, 0.15], [1047, 0.4]], 'square');
+  banner(P.newBest ? 'NEW RECORD' : 'TIME UP',
+    `穿環 ${P.count} 個・平均 ${avg} 秒／環・最快 ${fastest} 秒・撞網 ${P.hits} 次${old != null ? '・之前最佳 ' + old : ''}　按 Enter 再練一次，Esc 回設定`,
+    0, P.newBest ? '#3ddc84' : '#ffb627');
+  $('#pbBest b').textContent = S.best[key] != null ? S.best[key] : '—';
+  renderPracticeCard();
+}
+const HINT = {
+  up:{ ic:'↑', t:'上升', k:'W', f:'thr', sg:1 }, down:{ ic:'↓', t:'下降', k:'S', f:'thr', sg:-1 },
+  turnR:{ ic:'↻', t:'右轉', k:'D', f:'yaw', sg:1 }, turnL:{ ic:'↺', t:'左轉', k:'A', f:'yaw', sg:-1 },
+  fwd:{ ic:'⇡', t:'前進', k:'↑', f:'pitch', sg:1 }, back:{ ic:'⇣', t:'後退', k:'↓', f:'pitch', sg:-1 },
+  right:{ ic:'→', t:'右移', k:'→', f:'roll', sg:1 }, left:{ ic:'←', t:'左移', k:'←', f:'roll', sg:-1 },
+};
+// describe which stick and direction produces this command under the current axis mapping
+function stickWord(H) {
+  const m = S.map[H.f], a = m.a, pos = H.sg > 0;
+  if (a > 3) return `軸 ${a} ${(pos !== m.inv) ? '＋' : '－'}`;
+  const vert = a % 2 === 1;
+  const dir = vert ? ((pos === m.inv) ? '往上' : '往下') : ((pos !== m.inv) ? '往右' : '往左');
+  return (a < 2 ? '左桿' : '右桿') + dir;
+}
+let hintKey = '';
+function practiceHUD(now) {
+  const d = M.user, R = P.rings[0];
+  const tb = $('#pbTime b');
+  if (P.dur) { const left = Math.max(0, P.dur - P.t); tb.textContent = fmt(left); tb.classList.toggle('low', left <= 10 && M.phase === 'practice'); $('#pbTime small').textContent = '剩餘時間'; }
+  else { tb.textContent = fmt(P.t); $('#pbTime small').textContent = '自由練習'; }
+  $('#pbRings b').textContent = P.count;
+  for (let i = P.fx.length - 1; i >= 0; i--) {
+    const F = P.fx[i]; F.fade -= 1 / 60;
+    F.g.scale.setScalar(1 + (0.5 - F.fade) * 1.2); F.mat.opacity = Math.max(0, F.fade * 2);
+    if (F.fade <= 0) { scene.remove(F.g); F.g.traverse(o => { if (o.geometry) o.geometry.dispose(); }); P.fx.splice(i, 1); }
+  }
+  if (R) {
+    R.mat.emissiveIntensity = 0.7 + Math.abs(Math.sin(now / 260)) * 0.6;
+    if (P.guide && d) {
+      const pa = P.guide.geometry.attributes.position;
+      pa.setXYZ(0, d.pos.x, d.pos.y, d.pos.z); pa.setXYZ(1, R.pos.x, R.pos.y, R.pos.z); pa.needsUpdate = true;
+      P.guide.computeLineDistances(); P.guide.visible = M.phase === 'practice' || M.phase === 'pcount';
+    }
+  }
+  // control hints
+  let keys2 = [];
+  if (S.pHints && d && R && (M.phase === 'practice' || M.phase === 'pcount')) {
+    // aim at a point just in front of the ring on the side we are on, so we line up before passing
+    const ax = ringAxis(R).clone();
+    const side = _rb.subVectors(d.pos, R.pos).dot(ax) >= 0 ? 1 : -1;
+    const want = P_LEVELS[P.level].dirReq ? -1 : side;
+    const tgt = R.pos.clone().addScaledVector(ax, want * R.dm.inner * 0.9);
+    const close = d.pos.distanceTo(tgt) < R.dm.inner * 0.7;
+    const aim = close ? R.pos.clone().addScaledVector(ax, -want * R.dm.inner) : tgt;
+    const to = aim.sub(d.pos);
+    const fx = Math.cos(d.yaw), fz = -Math.sin(d.yaw), rx = Math.sin(d.yaw), rz = Math.cos(d.yaw);
+    const f = to.x * fx + to.z * fz, r = to.x * rx + to.z * rz, bearing = Math.atan2(r, f) / DEG;
+    const tol = 0.12 * A.cs + R.dm.inner * 0.15;
+    if (!d.armed && M.phase === 'pcount') keys2 = ['up'];
+    else {
+      if (Math.abs(bearing) > 28) keys2.push(bearing > 0 ? 'turnR' : 'turnL');
+      if (to.y > tol) keys2.push('up'); else if (to.y < -tol) keys2.push('down');
+      if (Math.abs(bearing) <= 28 && Math.abs(r) > tol) keys2.push(r > 0 ? 'right' : 'left');
+      if (Math.abs(bearing) <= 50) keys2.push(f > 0 ? 'fwd' : 'back');
+    }
+    keys2 = keys2.slice(0, 3);
+  }
+  const k = keys2.join('|');
+  if (k !== hintKey) {
+    hintKey = k;
+    $('#phint').innerHTML = keys2.map((h, i) => { const H = HINT[h]; return `<div class="hint${i ? ' sub' : ''}"><span class="ic">${H.ic}</span><div><b>${H.t}</b> <kbd>${H.k}</kbd><br><span>手把：${stickWord(H)}</span></div></div>`; }).join('');
+  }
+}
+function renderPracticeCard() {
+  const box = $('#prFaces'); if (!box) return;
+  if (!box.childElementCount) {
+    box.innerHTML = ROSTER.map((r, k) => `<label title="${esc(rName(k))}・${r.title}"><input type="radio" name="pk" id="pk-${k}" value="${k}"><img alt="${esc(rName(k))}" src="${faceURL(Object.assign({ id:'pf' + k }, r.look))}"></label>`).join('');
+    box.querySelectorAll('input').forEach(el => el.addEventListener('change', () => { S.pK = +el.value; save(); }));
+  }
+  const el = document.getElementById('pk-' + S.pK); if (el) el.checked = true;
+  const lv = P_LEVELS.map((L, i) => i);
+  const fmtB = (dur, l) => { const v = S.best[`${S.arena}-${dur}-${l}`]; return v == null ? '—' : v; };
+  $('#prBest').innerHTML = `${ARENAS[S.arena].label} 最佳紀錄　1 分鐘：${lv.map(l => `${P_LEVELS[l].name} <b>${fmtB(60, l)}</b>`).join('・')}<br>　　　　　　　3 分鐘：${lv.map(l => `${P_LEVELS[l].name} <b>${fmtB(180, l)}</b>`).join('・')}`;
+}
+$('#btnPractice').addEventListener('click', startPractice);
+
 function showVS() {
   for (let t = 0; t < 2; t++) {
     $('#vs' + t).innerHTML = [0, 1, 2].map(i => `<figure><img alt="" src="${svgURL(crewCfg(t, i))}"><figcaption>${esc(nameOf(t, i))}・${ROLE_NAME[ROLES[i]]}</figcaption></figure>`).join('');
@@ -1370,6 +1707,8 @@ addEventListener('keydown', e => {
   else if (e.code === 'KeyP') togglePause();
   else if (e.code === 'KeyH') $('#keys').hidden = !$('#keys').hidden;
   else if (e.code === 'Enter' && M.phase === 'over') openSelect();
+  else if ((e.code === 'Enter' || e.code === 'KeyR') && M.phase === 'pover') startPractice();
+  else if (e.code === 'KeyR' && M.mode === 'practice') startPractice();
   else if (e.code === 'Space' || e.code === 'KeyE') useSkill(M.user);
 });
 addEventListener('keyup', e => { keys[e.code] = false; });
@@ -1504,6 +1843,7 @@ const CAMS = ['追尾', '飛手區', '轉播', 'FPV'];
 function cycleCam() { M.camChosen = true; M.cam = (M.cam + 1) % CAMS.length; $('#hudCam').textContent = CAMS[M.cam]; }
 function toggleFlight() { S.flight = S.flight === 'assist' ? 'manual' : 'assist'; save(); syncForm(); toast(S.flight === 'assist' ? '飛行模式：定高輔助' : '飛行模式：手動油門（自穩）'); }
 function switchDrone(step) {
+  if (M.mode === 'practice') return;
   if (!M.user || M.phase === 'penalty' || M.phase === 'penaltySetup') return;
   const mates = byTeam(M.user.team); const i = mates.indexOf(M.user);
   const nd = mates[(i + step + 3) % 3];
@@ -1516,6 +1856,7 @@ function onStartButton() {
   else if (!$('#menu').hidden) resumeFromMenu();
   else if (M.phase === 'intro') endVS();
   else if (M.phase === 'over') openSelect();
+  else if (M.phase === 'pover') startPractice();
   else togglePause();
 }
 
@@ -1573,7 +1914,13 @@ function drawMini() {
   mg.fillStyle = '#123f2e'; mg.fillRect(0, 0, w, h);
   mg.strokeStyle = 'rgba(255,255,255,.7)'; mg.lineWidth = 2; mg.strokeRect(1, 1, w - 2, h - 2);
   mg.beginPath(); mg.moveTo(w / 2, 0); mg.lineTo(w / 2, h); mg.stroke();
-  for (const R of rings) {
+  if (M.mode === 'practice') P.rings.slice().reverse().forEach((R, j) => {
+    const act = j === P.rings.length - 1, x = (R.pos.x + A.L / 2) * sx, y = (R.pos.z + A.W / 2) * sz;
+    const hx = Math.sin(R.yaw) * R.dm.outer / 2 * sx, hy = Math.cos(R.yaw) * R.dm.outer / 2 * sz;
+    mg.strokeStyle = act ? '#ffb627' : 'rgba(207,216,227,.5)'; mg.lineWidth = act ? 5 : 3;
+    mg.beginPath(); mg.moveTo(x - hx, y - hy); mg.lineTo(x + hx, y + hy); mg.stroke();
+  });
+  else for (const R of rings) {
     mg.strokeStyle = TEAMS[R.team].css; mg.lineWidth = 5;
     const x = (R.x + A.L / 2) * sx; mg.beginPath(); mg.moveTo(x, (A.W / 2 - A.ringOuter / 2) * sz); mg.lineTo(x, (A.W / 2 + A.ringOuter / 2) * sz); mg.stroke();
   }
@@ -1649,6 +1996,7 @@ function frame(now) {
       for (const d of drones) d.prev.copy(d.pos);
       for (const d of drones) stepDrone(d, STEP);
       collidePairs();
+      if (M.mode === 'practice' && M.phase === 'practice' && M.user) practiceStep(M.user);
       if (M.phase === 'play' || M.phase === 'penalty') for (const d of drones) checkRules(d, STEP);
       if (M.phase === 'arming' && M.user && M.user.pos.y > A.ballR + 0.04 * A.cs) penaltyAgainst(M.user.team, '鳴聲前提早起飛');
       acc -= STEP;
@@ -1677,10 +2025,12 @@ function frame(now) {
   updateCamera(dt);
   renderer.render(scene, camera);
   hudUpdate(); squadUpdate(); drawSticks(userCmd); drawMini();
+  if (M.mode === 'practice') practiceHUD(now);
   if (!$('#menu').hidden) menuMonitor();
 }
 
 function gameLogic(dt) {
+  if (M.mode === 'practice') return practiceLogic(dt);
   if (M.phase === 'intro') { M.t += dt; if (M.t > 3.2) endVS(); return; }
   if (M.phase === 'arming') {
     M.t += dt;
@@ -1798,10 +2148,11 @@ const radios = (name, key, parse) => document.querySelectorAll(`input[name="${na
   el.addEventListener('change', () => { S[key] = parse ? parse(el.value) : el.value; save(); onSettingChange(key); });
 });
 radios('arena', 'arena'); radios('team', 'team', Number); radios('arcade', 'arcade', v => v === '1'); radios('setsec', 'setSec', Number);
+radios('pdur', 'pDur', Number); radios('plevel', 'pLevel', Number); radios('phints', 'pHints', v => v === '1');
 radios('diff', 'diff', Number); radios('flight', 'flight'); radios('input', 'input');
 function syncForm() {
   const set = id => { const el = document.getElementById(id); if (el) el.checked = true; };
-  set('ar-' + S.arena); set('tm-' + S.team); set('gm-' + (S.arcade ? 1 : 0)); set('ss-' + S.setSec); set('df-' + S.diff); set('fl-' + S.flight); set('in-' + S.input);
+  set('ar-' + S.arena); set('tm-' + S.team); set('gm-' + (S.arcade ? 1 : 0)); set('pd-' + S.pDur); set('pl-' + S.pLevel); set('ph-' + (S.pHints ? 1 : 0)); set('ss-' + S.setSec); set('df-' + S.diff); set('fl-' + S.flight); set('in-' + S.input);
   $('#serBox').hidden = S.input !== 'serial'; $('#gpBox').hidden = S.input !== 'gamepad';
   buildMapTable();
 }
@@ -1816,8 +2167,11 @@ function onSettingChange(key) {
   syncForm(); updateStartLabel();
 }
 function updateStartLabel() {
-  $('#btnStart').textContent = !M.started ? '開始比賽' : needRestart ? '以新設定開始' : '繼續比賽';
+  const prac = M.mode === 'practice' && M.started;
+  $('#btnStart').textContent = !M.started ? '開始 3v3 比賽' : needRestart ? '以新設定開始比賽' : prac ? '回到練習' : '繼續比賽';
   $('#btnRestart').hidden = !M.started || needRestart;
+  $('#btnRestart').textContent = prac ? '改打 3v3 比賽' : '重新開始比賽';
+  renderPracticeCard();
 }
 function openMenu() { $('#menu').hidden = false; updateStartLabel(); }
 function resumeFromMenu() {
