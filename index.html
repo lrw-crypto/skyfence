@@ -350,6 +350,8 @@ html.padmode body > *:not(#pad):not(script){display:none!important}
 .pd-info{font-family:var(--f-display);font-weight:700;font-size:clamp(20px,4.6vw,34px);letter-spacing:.04em;min-height:1.2em}
 .pd-msg{font-size:13px;color:var(--muted);max-width:34ch}
 .pd-btns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:min(100%,260px)}
+.pd-btns button{white-space:nowrap}
+.pd-info{white-space:nowrap}
 .pd-btns button{padding:10px 6px;font-size:14px;touch-action:none}
 .pd-btns button.big{grid-column:1/-1;background:var(--amber);border-color:var(--amber);color:#1b1306;font-weight:800;font-size:17px;padding:12px}
 .pd-btns button.hit{transform:scale(.95);filter:brightness(1.3)}
@@ -2802,7 +2804,9 @@ window.SFLINK = {
     const main = document.querySelector('.pd-main'); if (!main) return;
     const vw = window.visualViewport ? visualViewport.width : innerWidth, portrait = innerHeight > innerWidth;
     const h = main.clientHeight - 26;
-    const size = portrait ? Math.min(vw * 0.42, h * 0.5) : Math.min(vw * 0.36, h);
+    // landscape: keep at least ~250px in the middle for score and buttons
+    const side = (vw - 250 - 24 - 32) / 2;
+    const size = portrait ? Math.min(vw * 0.42, h * 0.5) : Math.min(vw * 0.36, side, h);
     pad.style.setProperty('--stick', Math.max(110, Math.floor(size)) + 'px');
     ST.L.upd && ST.L.upd(); ST.R.upd && ST.R.upd();
   }
