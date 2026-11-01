@@ -120,7 +120,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--f-body);overflow:h
 #banner small{display:block;font-family:var(--f-body);font-weight:500;font-size:clamp(14px,2.2vw,20px);letter-spacing:0;margin-top:10px;color:var(--text)}
 #bottom{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
 .pane{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;color:var(--muted)}
-#inp{display:flex;gap:10px;align-items:center}
+#inp,#inp2{display:flex;gap:10px;align-items:center}
+#inp2[hidden]{display:none}
 #inp b{color:var(--text);font-weight:500}
 #inp .meta{display:flex;flex-direction:column;gap:1px;min-width:0}
 #sticks{width:150px;height:70px;display:block}
@@ -275,6 +276,10 @@ details li{margin-bottom:4px}
 .gc:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
 .gc.sel{border-color:var(--amber);transform:translateY(-3px);box-shadow:0 0 0 3px rgba(255,182,39,.25)}
 .gc.mate{border-color:#5d7290}
+.gc.taken{opacity:.35;filter:grayscale(.7);cursor:not-allowed}
+.gc.taken .ps{background:#8796a8}
+.sel-who{display:inline-block;font-family:var(--f-display);font-weight:800;font-size:20px;letter-spacing:.1em;color:#fff;padding:2px 14px;border-radius:6px;margin-bottom:6px}
+.sel-pos button:disabled{opacity:.5}
 .sel-pos{display:flex;gap:8px;flex-wrap:wrap}
 .sel-pos button{min-width:96px}
 .sel-pos button.on{background:var(--amber);border-color:var(--amber);color:#1b1306;font-weight:700}
@@ -295,6 +300,42 @@ details li{margin-bottom:4px}
 #flatNote{position:relative;font-size:13px;color:var(--amber)}
 @media (max-width:820px){.sel-row{grid-template-columns:minmax(0,1fr)} .ch-art{height:170px} .ch.sel{transform:none}}
 
+/* ---------- 2-player lobby ---------- */
+#lobby{position:fixed;inset:0;overflow:auto;z-index:5;background:radial-gradient(ellipse at 50% 0%,#1d2c46 0%,#0a0e13 60%),#0a0e13;
+  padding-block:calc(24px + env(safe-area-inset-top,0px)) calc(24px + env(safe-area-inset-bottom,0px));
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;align-items:center;gap:18px}
+.lb-row{width:100%;max-width:1000px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.lb-card{background:linear-gradient(180deg,#132033,#0e1520);border:2px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0;border-top-width:6px}
+.lb-card.t0{border-top-color:var(--red)} .lb-card.t1{border-top-color:var(--blue)}
+.lb-card.ready{box-shadow:0 0 0 2px rgba(61,220,132,.35)}
+.lb-who{display:flex;align-items:center;gap:10px}
+.lb-who b{font-family:var(--f-display);font-weight:800;font-size:40px;line-height:1}
+.lb-who span{font-size:15px;font-weight:700}
+.lb-dot{margin-left:auto;width:14px;height:14px;border-radius:50%;background:#3a4b62}
+.lb-card.ready .lb-dot{background:var(--ok);box-shadow:0 0 10px var(--ok)}
+.lb-dev{font-size:14px;color:#c3cdd9}
+.lb-phone{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:start}
+.lb-phone .qr{width:150px;height:150px;background:#fff;border-radius:8px;padding:7px;display:grid;place-items:center;color:#333;font-size:12px;text-align:center}
+.lb-phone .qr svg{width:100%;height:100%;display:block}
+.lb-info{display:flex;flex-direction:column;gap:6px;min-width:0}
+.lb-info .note.ok{color:var(--ok)}
+@media (max-width:760px){.lb-row{grid-template-columns:minmax(0,1fr)}}
+/* ---------- split screen ---------- */
+#splitBar{position:fixed;top:0;bottom:0;left:50%;width:4px;margin-left:-2px;background:#0a0e13;box-shadow:0 0 0 1px #2a3a50;z-index:1;pointer-events:none}
+.split-tag{position:fixed;top:calc(96px + env(safe-area-inset-top,0px));z-index:1;pointer-events:none;font-family:var(--f-display);font-weight:800;font-size:22px;padding:2px 12px;border-radius:6px;background:rgba(10,14,19,.7)}
+#tagP1{left:max(16px,env(safe-area-inset-left,0px));color:var(--amber)}
+#tagP2{right:max(16px,env(safe-area-inset-right,0px));color:#35e0ff}
+.split-tag small{font-family:var(--f-body);font-weight:500;font-size:12px;color:var(--text);margin-left:6px}
+.slot.me2 .fc{border-color:#35e0ff;box-shadow:0 0 0 2px rgba(53,224,255,.35)}
+.slot.me2 .nm{color:#35e0ff}
+#inp2 .meta b{color:var(--text)}
+#inp2 #hudFace2{width:56px;height:84px;object-fit:contain}
+#skillBox2{display:flex;flex-direction:column;align-items:center;gap:2px;width:84px}
+#skillBox2 b{font-family:var(--f-display);font-size:13px;letter-spacing:.06em;white-space:nowrap}
+#skillBox2 i{display:block;width:100%;height:5px;background:#1b2633;border-radius:3px;overflow:hidden}
+#skillBox2 i s{display:block;height:100%;width:0;background:#35e0ff;border-radius:3px}
+#skillBox2.ready b{color:#35e0ff}
 /* ---------- VS splash ---------- */
 #vs{position:fixed;inset:0;z-index:6;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;cursor:pointer;overflow:hidden;
   background:linear-gradient(105deg,#7a1424 0%,#c22a3c 46%,#0a0e13 46.2%,#0a0e13 53.8%,#1f5fc4 54%,#0c2f6e 100%);
@@ -385,6 +426,9 @@ html.padmode body > *:not(#pad):not(script){display:none!important}
 <body>
 <div id="stage"></div>
 
+<div id="splitBar" hidden></div>
+<div class="split-tag" id="tagP1" hidden>P1<small></small></div>
+<div class="split-tag" id="tagP2" hidden>P2<small></small></div>
 <div id="hud">
   <div id="top">
    <div id="topRow">
@@ -424,6 +468,15 @@ html.padmode body > *:not(#pad):not(script){display:none!important}
       <kbd>Space</kbd> 技能　<kbd>Tab</kbd> 換機　<kbd>C</kbd> 視角　<kbd>F</kbd> 飛行模式　<kbd>P</kbd> 暫停　<kbd>Esc</kbd> 設定
     </div>
     <div class="pane"><canvas id="mini" width="480" height="240" aria-label="俯視小地圖"></canvas></div>
+    <div class="pane" id="inp2" hidden>
+      <div class="meta">
+        <div>P2：<b id="hudCtl2">—</b></div>
+        <div>裝置：<b id="hudSrc2">—</b></div>
+        <div>視角：<b id="hudCam2">追尾</b></div>
+      </div>
+      <canvas id="sticks2" width="300" height="140" aria-label="P2 搖桿位置"></canvas>
+      <div class="me-card"><img id="hudFace2" alt="" hidden><div id="skillBox2" hidden><b id="skName2">—</b><i><s id="skBar2"></s></i><span>技能鍵</span></div></div>
+    </div>
   </div>
 </div>
 
@@ -476,6 +529,11 @@ html.padmode body > *:not(#pad):not(script){display:none!important}
       <div class="row"><span>我的隊伍</span><div class="seg">
         <label class="r"><input type="radio" name="team" id="tm-0" value="0"><span>紅隊（左側）</span></label>
         <label class="b"><input type="radio" name="team" id="tm-1" value="1"><span>藍隊（右側）</span></label></div></div>
+      <div class="row"><span>玩家人數</span><div class="seg">
+        <label><input type="radio" name="play" id="pm-solo" value="solo"><span>單人（對 AI）</span></label>
+        <label><input type="radio" name="play" id="pm-versus" value="versus"><span>雙人 1 對 1</span></label>
+        <label><input type="radio" name="play" id="pm-coop" value="coop"><span>雙人合作</span></label></div></div>
+      <p class="note" id="playNote" style="margin:0"></p>
       <div class="row"><span>遊戲模式</span><div class="seg">
         <label><input type="radio" name="arcade" id="gm-1" value="1"><span>電玩模式（角色能力＋技能）</span></label>
         <label><input type="radio" name="arcade" id="gm-0" value="0"><span>競技模式（FAI 標準）</span></label></div></div>
@@ -561,7 +619,7 @@ html.padmode body > *:not(#pad):not(script){display:none!important}
   </div>
 </div>
 <div id="select" hidden>
-  <div class="sel-head"><div class="sel-title">SELECT <span>PILOT</span></div><div class="sel-sub">方向鍵選飛手　Q／E 換位置　Enter／✕ 確認　Esc 返回</div></div>
+  <div class="sel-head"><div class="sel-who" id="selWho" hidden></div><div class="sel-title">SELECT <span>PILOT</span></div><div class="sel-sub">方向鍵選飛手　Q／E 換位置　Enter／✕ 確認　Esc 返回</div></div>
   <div class="sel-main">
     <div class="ch sel-detail" id="selDetail"></div>
     <div class="sel-side">
@@ -577,6 +635,33 @@ html.padmode body > *:not(#pad):not(script){display:none!important}
   <div class="sel-foot">
     <div class="sel-opp" id="selOpp"></div>
     <div class="btns"><button id="selBack">返回設定</button><button id="selSpec">全 AI 觀戰</button><button class="primary" id="selGo">確認出戰</button></div>
+  </div>
+</div>
+<div id="lobby" hidden>
+  <div class="sel-head"><div class="sel-title">2 PLAYER <span id="lbMode">VERSUS</span></div><div class="sel-sub" id="lbSub"></div></div>
+  <div class="lb-row">
+    <section class="lb-card" id="lbc0">
+      <div class="lb-who"><b>P1</b><span id="lbTeam0"></span><i class="lb-dot" id="lbDot0"></i></div>
+      <div class="lb-dev" id="lbDev0"></div>
+      <div class="lb-phone" id="lbPhone0">
+        <div class="qr" id="lbQR0">產生中…</div>
+        <div class="lb-info"><div class="ph-code">連線碼<b id="lbCode0">——</b></div><div class="note" id="lbStat0"></div></div>
+      </div>
+      <button type="button" id="lbUsePhone0">P1 改用手機遙控</button>
+    </section>
+    <section class="lb-card" id="lbc1">
+      <div class="lb-who"><b>P2</b><span id="lbTeam1"></span><i class="lb-dot" id="lbDot1"></i></div>
+      <div class="lb-dev" id="lbDev1"></div>
+      <div class="lb-phone">
+        <div class="qr" id="lbQR1">產生中…</div>
+        <div class="lb-info"><div class="ph-code">連線碼<b id="lbCode1">——</b></div><div class="note" id="lbStat1"></div><div class="ph-url" id="lbURL1"></div></div>
+      </div>
+      <div class="note">P2 用手機掃描 QR code；也可以接第 2 支 USB 遊戲手把。</div>
+    </section>
+  </div>
+  <div class="sel-foot">
+    <div class="note" id="lbNote">兩支手機都掃好之後，按「進入選角」。P1 先選，P2 再選。</div>
+    <div class="btns"><button id="lbBack" type="button">返回設定</button><button class="primary" id="lbGo" type="button">進入選角</button></div>
   </div>
 </div>
 <div id="vs" hidden>
@@ -2848,6 +2933,9 @@ window.SFLINK = {
       $('#pdInfo').textContent = String(m.txt || '').slice(0, 40);
       if (m.msg != null) $('#pdMsg').textContent = String(m.msg).slice(0, 80);
       if (m.fl === 'assist' || m.fl === 'manual') hostFlight = m.fl;
+      const tm = /^#[0-9a-f]{6}$/i.test(m.tm || '') ? m.tm : '';
+      pad.style.boxShadow = tm ? `inset 0 5px 0 ${tm}` : '';
+      if (conn && conn.open) status('已連線 ' + code + (m.who ? '・' + String(m.who).slice(0, 12) : ''), 'ok');
     } else if (m.t === 'ev' && navigator.vibrate) {
       navigator.vibrate(m.k === 'good' ? [30, 40, 60] : m.k === 'bad' ? 200 : 25);
     }
@@ -3155,13 +3243,14 @@ const OPP_KIT = [
 ];
 const STAT_NAMES = [['spd', '速度'], ['acc', '靈敏'], ['pow', '衝撞'], ['stb', '穩定']];
 const slotK = i => M.mode === 'practice' ? S.pK : S.lineup[i];
-const kitOf = (t, i) => t === S.team ? ROSTER[slotK(i)] : OPP_KIT[i];
+const versusOn = () => S.play === 'versus' && M.mode !== 'practice';
+const kitOf = (t, i) => t === S.team ? ROSTER[slotK(i)] : versusOn() ? ROSTER[S.lineup2[i]] : OPP_KIT[i];
 const esc = v => String(v).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
 const faceURL = cfg => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(chibiSVG(cfg).replace('viewBox="0 0 200 300" width="200" height="300"', 'viewBox="26 14 148 136" width="148" height="136"'));
 const svgURL = cfg => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(chibiSVG(cfg));
-const crewCfg = (t, i) => Object.assign({ id:'c' + t + i }, t === S.team ? ROSTER[slotK(i)].look : OPP[i]);
+const crewCfg = (t, i) => Object.assign({ id:'c' + t + i }, t === S.team ? ROSTER[slotK(i)].look : versusOn() ? ROSTER[S.lineup2[i]].look : OPP[i]);
 const rName = k => S.names[k] || `飛手 ${k + 1}`;
-const nameOf = (t, i) => t === S.team ? rName(slotK(i)) : OPP_KIT[i].name;
+const nameOf = (t, i) => t === S.team ? rName(slotK(i)) : versusOn() ? rName(S.lineup2[i]) : OPP_KIT[i].name;
 const pilotName = d => nameOf(d.team, d.idx);
 
 const DIFF = [{ spd:0.62, react:0.75 }, { spd:0.8, react:1 }, { spd:0.95, react:1.35 }];
@@ -3169,13 +3258,16 @@ const dirOf = t => t === 0 ? 1 : -1;  // red attacks +x
 
 /* ---------------- Settings ---------------- */
 const DEF = { arena:'B', team:0, role:'striker', setSec:180, diff:1, flight:'assist', input:'keyboard',
-  deadzone:0.06, expo:0.25, center:[128,128,128,128], names:['飛手一','飛手二','飛手三','飛手四','飛手五','飛手六','飛手七','飛手八','飛手九','飛手十'], lineup:[0,1,2], arcade:true, pDur:60, pLevel:0, pHints:true, pK:0, best:{},
+  deadzone:0.06, expo:0.25, center:[128,128,128,128], names:['飛手一','飛手二','飛手三','飛手四','飛手五','飛手六','飛手七','飛手八','飛手九','飛手十'], lineup:[0,1,2], arcade:true, pDur:60, pLevel:0, pHints:true, pK:0, best:{}, play:'solo', role2:'striker', lineup2:[3,4,8],
   map:{ thr:{a:1,inv:true}, yaw:{a:0,inv:false}, pitch:{a:3,inv:true}, roll:{a:2,inv:false} } };
 let S = JSON.parse(JSON.stringify(DEF));
 try { const s = JSON.parse(localStorage.getItem('skyfence3v3') || 'null'); if (s) S = Object.assign(S, s); } catch (e) {}
 while (S.names.length < DEF.names.length) S.names.push(DEF.names[S.names.length]);
 if (!S.best || typeof S.best !== 'object') S.best = {};
 if (!(S.pK >= 0 && S.pK < 10)) S.pK = 0;
+if (!['solo', 'versus', 'coop'].includes(S.play)) S.play = 'solo';
+if (!ROLES.includes(S.role2)) S.role2 = 'striker';
+if (!Array.isArray(S.lineup2) || S.lineup2.length !== 3 || new Set(S.lineup2).size !== 3 || S.lineup2.some(k => !(k >= 0 && k < 10))) S.lineup2 = [3, 4, 8];
 if (!Array.isArray(S.lineup) || S.lineup.length !== 3 || new Set(S.lineup).size !== 3 || S.lineup.some(k => !(k >= 0 && k < 10))) S.lineup = [0, 1, 2];
 const save = () => { try { localStorage.setItem('skyfence3v3', JSON.stringify(S)); } catch (e) {} };
 
@@ -3367,7 +3459,7 @@ const effMass = d => d.mass * (active(d, 'wall') ? 4 : active(d, 'ram') ? 2.5 : 
 function useSkill(d) {
   if (!d || !d.skill || d.cd > 0 || d.frozen || !d.armed || !(M.phase === 'play' || M.phase === 'penalty')) return false;
   const sk = SKILLS[d.skill]; d.skillT = sk.dur; d.cd = sk.cd + sk.dur;
-  if (d === M.user) { beepSeq([[520, 0.05], [780, 0.05], [1170, 0.12]], 'sawtooth'); toast(`${pilotName(d)} 發動「${sk.name} ${sk.en}」`); }
+  if (d === M.user || d === M.user2) { beepSeq([[520, 0.05], [780, 0.05], [1170, 0.12]], 'sawtooth'); toast(`${S.play !== 'solo' ? (d === M.user ? 'P1 ' : 'P2 ') : ''}${pilotName(d)} 發動「${sk.name} ${sk.en}」`); }
   else beep(330, 0.1, 'sawtooth', 0.025);
   return true;
 }
@@ -3378,7 +3470,7 @@ function forceStun(d, s) {
 
 function wallHit(d, s) {
   impact(d, s);
-  if (M.mode === 'practice' && s > 0.6 && P.t - P.lastHit > 0.5) { P.hits++; P.lastHit = P.t; if (d === M.user) phoneEv('bump'); }
+  if (M.mode === 'practice' && s > 0.6 && P.t - P.lastHit > 0.5) { P.hits++; P.lastHit = P.t; if (userSlot(d) >= 0) phoneEv(userSlot(d), 'bump'); }
 }
 function impact(d, s) {
   if (active(d, 'wall')) return;
@@ -3505,7 +3597,7 @@ function buildCrew() {
     card.innerHTML = `<img alt="" src="${faceURL(Object.assign({ id:'m' + k }, r.look))}"><div class="rl" style="color:${TYPES[r.type].css}">${r.title}${pos >= 0 ? `<em>${ROLE_NAME[ROLES[pos]]}</em>` : ''}</div>
       <input id="name-${k}" maxlength="10" aria-label="${r.title} 飛手名字"><div class="ds">${r.kind}・${SKILLS[r.skill].name}・${r.desc}</div>`;
     const inp = card.querySelector('input'); inp.value = S.names[k] || '';
-    inp.addEventListener('input', () => { S.names[k] = inp.value.trim(); save(); if (M.user) setUser(M.user); buildSquads(); });
+    inp.addEventListener('input', () => { S.names[k] = inp.value.trim(); save(); if (M.user) setUser(M.user); if (M.user2) setUser2(M.user2); buildSquads(); });
     row.appendChild(card);
   });
 }
@@ -3515,12 +3607,39 @@ function makeTeams() {
   for (let t = 0; t < 2; t++) for (let i = 0; i < 3; i++) drones.push(new Drone(t, i));
   drones.forEach(applyChar);
   buildPilots(); buildSquads();
-  setUser(S.role === 'spectate' ? null : roleOf(S.team, S.role));
+  M.user = null; M.user2 = null;
+  const r1 = S.role === 'spectate' ? 'striker' : S.role;
+  let r2 = S.role2;
+  if (S.play === 'coop' && r2 === r1) r2 = ROLES[(ROLES.indexOf(r1) + 1) % 3];
+  setUser(S.role === 'spectate' && S.play === 'solo' ? null : roleOf(S.team, r1));
+  setUser2(S.play === 'solo' ? null : roleOf(S.play === 'versus' ? 1 - S.team : S.team, r2));
+}
+const twoP = () => S.play !== 'solo' && M.mode === 'match';
+// hand both human slots to new drones in one step (release first, so nobody is left half-controlled)
+function assignUsers(u1, u2) {
+  for (const u of [M.user, M.user2]) if (u) { u.ai = true; u.marker.visible = false; }
+  M.user = null; M.user2 = null;
+  setUser(u1 || null);
+  if (S.play !== 'solo' && M.mode === 'match') setUser2(u2 || null); else setUser2(null);
+}
+function setUser2(d) {
+  if (M.user2 && M.user2 !== M.user) { M.user2.ai = true; M.user2.marker.visible = false; }
+  M.user2 = d;
+  if (d) { d.ai = false; d.marker.visible = true; d.marker.material.color.setHex(0x35e0ff); }
+  if (M.user) M.user.marker.material.color.setHex(S.play === 'solo' ? 0xffffff : 0xffb627);
+  $('#hudCtl2').textContent = d ? `${pilotName(d)}（${TEAMS[d.team].name} ${ROLE_NAME[d.role]}）` : '觀看中';
+  const face = $('#hudFace2');
+  if (d) { const u = svgURL(crewCfg(d.team, d.idx)); if (face.dataset.u !== u) { face.src = u; face.dataset.u = u; } face.hidden = false; } else face.hidden = true;
+  $('#skillBox2').hidden = !(d && d.skill);
+  if (d && d.skill) $('#skName2').textContent = `${SKILLS[d.skill].name} ${SKILLS[d.skill].en}`;
+  $('#tagP2 small').textContent = d ? pilotName(d) : '';
+  squadMarks();
 }
 function setUser(d) {
-  if (M.user) { M.user.ai = true; M.user.marker.visible = false; }
+  if (M.user && M.user !== M.user2) { M.user.ai = true; M.user.marker.visible = false; }
   M.user = d;
-  if (d) { d.ai = false; d.marker.visible = true; }
+  if (d) { d.ai = false; d.marker.visible = true; d.marker.material.color.setHex(S.play === 'solo' || M.mode === 'practice' ? 0xffffff : 0xffb627); }
+  const t1 = $('#tagP1 small'); if (t1) t1.textContent = d ? pilotName(d) : '';
   $('#hudCtl').textContent = d ? (M.mode === 'practice' ? `${pilotName(d)}（單人穿環練習）` : `${pilotName(d)}（${TEAMS[d.team].name} ${ROLE_NAME[d.role]}）`) : '觀戰（全 AI）';
   const face = $('#hudFace');
   if (d) { const u = svgURL(crewCfg(d.team, d.idx)); if (face.dataset.u !== u) { face.src = u; face.dataset.u = u; } face.hidden = false; } else face.hidden = true;
@@ -3545,6 +3664,7 @@ function squadMarks() {
   for (let t = 0; t < 2; t++) for (let i = 0; i < 3; i++) {
     const s = slotEls[t][i]; if (!s) continue;
     s.el.classList.toggle('me', !!(M.user && M.user.team === t && M.user.idx === i));
+    s.el.classList.toggle('me2', !!(M.user2 && M.user2.team === t && M.user2.idx === i));
   }
 }
 function squadUpdate() {
@@ -3582,7 +3702,7 @@ function startArming() {
   drones.forEach(placeAtStart);
   M.mustReturn = [false, false];
   M.phase = 'arming'; M.t = 0; M.armDelay = 3 + Math.random() * 2;
-  drones.forEach(d => d.armed = (d === M.user));
+  drones.forEach(d => d.armed = (d === M.user || d === M.user2));
   banner('ARM YOUR QUADS', `${M.ot ? '延長賽・黃金進球' : '第 ' + M.setNo + ' 局'}・等待開賽鳴聲，提早離地判罰球`, 0, '#ffb627');
   beep(660, 0.12, 'sine', 0.06);
 }
@@ -3591,7 +3711,8 @@ function newMatch() {
   clearPracticeObjects(); M.mode = 'match'; practiceModeUI(false);
   Object.assign(M, { setNo:1, clock:S.setSec, goals:[0,0], setWins:[0,0], results:[], ot:false, penalty:null, wait:null, paused:false, started:true, userSaved:null });
   buildArena(); makeTeams();
-  if (!M.camChosen) { M.cam = M.user ? 0 : 2; $('#hudCam').textContent = CAMS[M.cam]; }
+  if (!M.camChosen || S.play !== 'solo') { M.cam = M.user ? 0 : 2; $('#hudCam').textContent = CAMS[M.cam]; }
+  M.cam2 = 0; $('#hudCam2').textContent = CAMS[0];
   showVS();
 }
 /* ---------------- Solo ring practice ---------------- */
@@ -3698,7 +3819,7 @@ function startPractice() {
   buildPilots();
   for (let t = 0; t < 2; t++) pilotSprites[t].forEach((sp, i) => sp.visible = t === S.team && i === 0);
   buildSquads();
-  M.user = null; setUser(d); placeAtStart(d); d.pos.z = 0; d.prev.copy(d.pos);
+  M.user = null; M.user2 = null; setUser2(null); setUser(d); placeAtStart(d); d.pos.z = 0; d.prev.copy(d.pos);
   Object.assign(P, { t:0, dur:S.pDur, level:S.pLevel, count:0, hits:0, lastHit:-9, step:0, lastPass:0, splits:[], newBest:false });
   const first = { pos:new V3(d.pos.x + Math.cos(d.yaw) * 1.6 * A.cs, 1.15 * A.cs, 0), yaw:d.yaw, kind:'fwd' };
   P.step = 1;
@@ -3717,7 +3838,7 @@ function startPractice() {
   M.phase = 'pcount'; M.t = 0; d.armed = false; P.lastCount = -1;
 }
 function practicePass(R) {
-  P.count++; phoneEv('good');
+  P.count++; phoneEv(0, 'good');
   const split = P.t - P.lastPass; P.lastPass = P.t; P.splits.push(split);
   const sp = $('#pSplit'); sp.textContent = `+1　${split.toFixed(1)} 秒`; sp.classList.add('on');
   clearTimeout(practicePass.tm); practicePass.tm = setTimeout(() => sp.classList.remove('on'), 1200);
@@ -3858,7 +3979,7 @@ $('#btnUsePhone').addEventListener('click', () => {
   const r = document.getElementById('in-phone'); r.checked = true; r.dispatchEvent(new Event('change'));
   $('#phBox').scrollIntoView({ behavior:'smooth', block:'center' });
 });
-$('#phNew').addEventListener('click', () => phoneHost(true));
+$('#phNew').addEventListener('click', () => phoneHost(0, true));
 
 function showVS() {
   for (let t = 0; t < 2; t++) {
@@ -3873,7 +3994,7 @@ function endVS() { if (M.phase !== 'intro') return; $('#vs').hidden = true; star
 $('#vs').addEventListener('click', endVS);
 
 function scoreGoal(team) {
-  phoneEv(M.user && M.user.team === team ? 'good' : 'bad');
+  [M.user, M.user2].forEach((u, i) => { if (u) phoneEv(i, u.team === team ? 'good' : 'bad'); });
   M.goals[team]++;
   M.mustReturn[team] = true;
   flashRing(1 - team);
@@ -3893,10 +4014,17 @@ function penaltyAgainst(team, reason) {
   beepSeq([[2100, 0.12], [1700, 0.12], [2100, 0.3]], 'triangle');
   const striker = roleOf(a, 'striker');
   let def = roleOf(team, 'keeper');
-  if (M.user && M.user.team === team && M.user.role !== 'striker') def = M.user;
+  const us = [M.user, M.user2].filter(Boolean);
+  const defUser = us.find(u => u.team === team && u.role !== 'striker');
+  if (defUser) def = defUser;
   M.penalty = { a, striker, def, reason };
-  M.userSaved = M.user;
-  if (M.user) { if (M.user.team === a) setUser(striker); else setUser(def); }
+  M.userSaved = M.user; M.user2Saved = M.user2;
+  // one human may fly the shooter, one the defender; anyone else watches
+  const ua = us.filter(u => u.team === a), ub = us.filter(u => u.team === team);
+  const sU = ua.find(u => u === striker) || ua[0] || null, dU = ub.find(u => u === def) || ub[0] || null;
+  const role = u => !u ? null : u === sU ? striker : u === dU ? def : null;
+  const n1 = role(M.user), n2 = role(M.user2);
+  assignUsers(n1, n2);
   const D = dirOf(a), ring = rings[1 - a];
   drones.forEach(d => { placeAtStart(d); d.armed = false; });
   striker.pos.set(0, A.ringY, 0); striker.yaw = D > 0 ? 0 : Math.PI;
@@ -3911,7 +4039,7 @@ function penaltyEnd(scored) {
   if (scored) { M.goals[a]++; flashRing(1 - a); beepSeq([[880, 0.1], [1175, 0.1], [1568, 0.25]]); banner('GOAL', `${TEAMS[a].name} 罰球得分`, 0, TEAMS[a].css); }
   else banner('MISSED', '罰球未進', 0, '#ffb627');
   M.penalty = null;
-  if (M.userSaved !== undefined) setUser(M.userSaved);
+  if (M.userSaved !== undefined) assignUsers(M.userSaved, M.user2Saved);
   disarmAll();
   if (scored && M.ot) { M.results.push({ g:M.goals.slice(), w:a }); M.setWins[a]++; toWait(3, () => endMatch(a)); return; }
   toWait(2.6, startArming);
@@ -4099,6 +4227,10 @@ const GP = { idx:null, axes:[], btn:[], prev:[], ok:true };
 let devAxes = [0, 0, 0, 0];
 
 addEventListener('keydown', e => {
+  if (!$('#lobby').hidden) {
+    if (e.code === 'Enter') { e.preventDefault(); lobbyGo(); } else if (e.code === 'Escape') lobbyBack();
+    return;
+  }
   if (selOpen()) {
     if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Space', 'Enter'].includes(e.code)) e.preventDefault();
     if (e.repeat) return;
@@ -4150,87 +4282,156 @@ function dz(v) { const z = S.deadzone; return Math.abs(v) < z ? 0 : Math.sign(v)
 function expo(v) { return v * (1 - S.expo) + v * v * v * S.expo; }
 
 /* ---------------- Phone as controller (WebRTC via PeerJS) ---------------- */
-const PH = { q:0, peer:null, conn:null, code:null, connected:false, last:0, c:[0, 0, 0, 0], n:null, lost:false, hudT:0, err:'' };
-const phoneLive = () => PH.connected && performance.now() - PH.last < 600;
-function phoneCode(regen) {
-  if (regen || !/^\d{6}$/.test(S.phoneCode || '')) { S.phoneCode = String(Math.floor(100000 + Math.random() * 900000)); save(); }
-  return S.phoneCode;
+const mkSlot = i => ({ i, q:0, peer:null, conn:null, connected:false, last:0, c:[0, 0, 0, 0], n:null, lost:false, hudT:0, nav:{ x:0, y:0 } });
+const PHS = [mkSlot(0), mkSlot(1)];
+const PH = PHS[0];
+const phoneLive = (i = 0) => PHS[i].connected && performance.now() - PHS[i].last < 600;
+const CODE_KEY = ['phoneCode', 'phoneCode2'];
+function phoneCode(i, regen) {
+  const k = CODE_KEY[i];
+  if (regen || !/^\d{6}$/.test(S[k] || '') || (i === 1 && S[k] === S.phoneCode)) { S[k] = String(Math.floor(100000 + Math.random() * 900000)); save(); }
+  return S[k];
 }
 function padURL(code) {
   const embedded = !/^https?:$/.test(location.protocol) || /claude\.ai|claudeusercontent|anthropic/.test(location.hostname);
   const base = embedded ? 'https://lrw-crypto.github.io/skyfence/' : location.origin + location.pathname;
   return base + '?pad=' + code;
 }
-function phStat(t, ok) { const el = $('#phStat'); if (el) { el.textContent = t; el.className = ok ? 'note ok' : 'note'; } }
-function renderPhonePanel() {
-  const code = phoneCode(), url = padURL(code);
-  $('#phCode').textContent = code.slice(0, 3) + ' ' + code.slice(3);
-  $('#phURL').textContent = url;
-  try {
-    const q = qrcode(0, 'M'); q.addData(url); q.make();
-    $('#phQR').innerHTML = q.createSvgTag({ cellSize:4, margin:2, scalable:true });
-  } catch (e) { $('#phQR').textContent = '無法產生 QR code，請在手機輸入網址'; }
+// every place a slot's QR / code / status is shown
+const PH_VIEWS = [
+  [{ qr:'#phQR', code:'#phCode', url:'#phURL', stat:'#phStat' }, { qr:'#lbQR0', code:'#lbCode0', stat:'#lbStat0' }],
+  [{ qr:'#lbQR1', code:'#lbCode1', url:'#lbURL1', stat:'#lbStat1' }],
+];
+function phStat(i, t, ok) { PH_VIEWS[i].forEach(v => { const el = $(v.stat); if (el) { el.textContent = t; el.classList.toggle('ok', !!ok); } }); }
+function renderPhonePanel(i) {
+  const code = phoneCode(i), url = padURL(code);
+  let svg = '';
+  try { const q = qrcode(0, 'M'); q.addData(url); q.make(); svg = q.createSvgTag({ cellSize:4, margin:2, scalable:true }); } catch (e) {}
+  PH_VIEWS[i].forEach(v => {
+    const c = $(v.code); if (c) c.textContent = code.slice(0, 3) + ' ' + code.slice(3);
+    if (v.url && $(v.url)) $(v.url).textContent = url;
+    const q = $(v.qr); if (q) { if (svg) q.innerHTML = svg; else q.textContent = '無法產生 QR code，請在手機輸入網址'; }
+  });
 }
-async function phoneHost(regen) {
-  if (regen) { phoneCode(true); if (PH.peer) { try { PH.peer.destroy(); } catch (e) {} PH.peer = null; PH.connected = false; } }
-  renderPhonePanel();
-  if (PH.peer && !PH.peer.destroyed) return;
-  phStat('準備連線…');
+async function phoneHost(i, regen) {
+  const SL = PHS[i];
+  if (regen) { phoneCode(i, true); if (SL.peer) { try { SL.peer.destroy(); } catch (e) {} SL.peer = null; SL.connected = false; } }
+  renderPhonePanel(i);
+  if (SL.peer && !SL.peer.destroyed) return;
+  phStat(i, '準備連線…');
   try { await SFLINK.loadPeer(); }
-  catch (e) { phStat('無法載入連線元件。請確認電腦能上網，並使用 GitHub 網站版（lrw-crypto.github.io/skyfence）。'); return; }
-  const code = phoneCode();
+  catch (e) { phStat(i, '無法載入連線元件。請確認電腦能上網，並使用 GitHub 網站版（lrw-crypto.github.io/skyfence）。'); return; }
+  if (SL.peer && !SL.peer.destroyed) return;
+  const code = phoneCode(i);
   let peer;
-  try { peer = new Peer(SFLINK.PREFIX + code); } catch (e) { phStat('這個環境不支援手機連線，請改用 GitHub 網站版。'); return; }
-  PH.peer = peer;
-  peer.on('open', () => phStat('等待手機連線…　連線碼 ' + code));
+  try { peer = new Peer(SFLINK.PREFIX + code); } catch (e) { phStat(i, '這個環境不支援手機連線，請改用 GitHub 網站版。'); return; }
+  SL.peer = peer;
+  const who = 'P' + (i + 1);
+  peer.on('open', () => phStat(i, '等待手機連線…　連線碼 ' + code));
   peer.on('connection', conn => {
-    if (PH.conn && PH.conn !== conn) { try { PH.conn.close(); } catch (e) {} }
-    PH.conn = conn; PH.n = null; PH.q = 0;
-    conn.on('open', () => { PH.connected = true; PH.last = performance.now(); phStat('手機已連線，可以開始飛了', true); toast('手機遙控器已連線'); beep(990, 0.1, 'sine', 0.05); });
-    conn.on('data', onPhoneData);
-    conn.on('close', () => { if (PH.conn === conn) { PH.connected = false; PH.c = [0, 0, 0, 0]; phStat('手機已中斷，等待重新連線…'); toast('手機遙控器已中斷'); } });
+    if (SL.conn && SL.conn !== conn) { try { SL.conn.close(); } catch (e) {} }
+    SL.conn = conn; SL.n = null; SL.q = 0;
+    conn.on('open', () => { SL.connected = true; SL.last = performance.now(); phStat(i, who + ' 手機已連線', true); toast(who + ' 手機遙控器已連線'); beep(i ? 1320 : 990, 0.1, 'sine', 0.05); });
+    conn.on('data', m => onPhoneData(i, m));
+    conn.on('close', () => { if (SL.conn === conn) { SL.connected = false; SL.c = [0, 0, 0, 0]; phStat(i, who + ' 手機已中斷，等待重新連線…'); toast(who + ' 手機遙控器已中斷'); } });
     conn.on('error', () => {});
   });
   peer.on('disconnected', () => { try { peer.reconnect(); } catch (e) {} });
   peer.on('error', e => {
-    if (e.type === 'unavailable-id') { phStat('連線碼被占用，已換一組新的'); setTimeout(() => phoneHost(true), 300); }
-    else if (e.type === 'network' || e.type === 'server-error' || e.type === 'socket-error') phStat('連不上連線伺服器，請確認電腦網路；稍後會自動重試');
-    else if (e.type !== 'peer-unavailable') phStat('連線錯誤：' + e.type);
+    if (e.type === 'unavailable-id') { phStat(i, '連線碼被占用，已換一組新的'); setTimeout(() => phoneHost(i, true), 300); }
+    else if (e.type === 'network' || e.type === 'server-error' || e.type === 'socket-error') phStat(i, '連不上連線伺服器，請確認電腦網路；稍後會自動重試');
+    else if (e.type !== 'peer-unavailable') phStat(i, '連線錯誤：' + e.type);
   });
 }
-function onPhoneData(m) {
+function onPhoneData(i, m) {
+  const SL = PHS[i];
   if (!m || typeof m !== 'object') return;
   if (m.t !== 's' || !Array.isArray(m.c)) return;
-  if (m.q) { if (m.q <= PH.q && PH.q - m.q < 1000) return; PH.q = m.q; }  // unordered channel: drop stale packets
-  PH.c = m.c.slice(0, 4).map(v => clamp(+v || 0, -1, 1)); PH.last = performance.now(); PH.lost = false;
+  if (m.q) { if (m.q <= SL.q && SL.q - m.q < 1000) return; SL.q = m.q; }  // unordered channel: drop stale packets
+  SL.c = m.c.slice(0, 4).map(v => clamp(+v || 0, -1, 1)); SL.last = performance.now(); SL.lost = false;
   const n = m.n || {};
-  if (PH.n) for (const k of ['skill', 'start', 'cam', 'retry', 'swap']) if ((n[k] | 0) > (PH.n[k] | 0)) phoneButton(k);
-  PH.n = Object.assign({}, n);
-}
-function phoneButton(k) {
-  if (k === 'start') onStartButton();
-  else if (k === 'cam') cycleCam();
-  else if (k === 'swap') switchDrone(1);
-  else if (k === 'retry') { if (M.mode === 'practice') startPractice(); }
-  else if (k === 'skill') { if (selOpen()) confirmSelect(false); else if (M.phase === 'intro') endVS(); else useSkill(M.user); }
-}
-function phoneSend(msg) { if (PH.connected && PH.conn && PH.conn.open) { try { PH.conn.send(msg); } catch (e) {} } }
-const phoneEv = k => phoneSend({ t:'ev', k });
-function phoneTick(now) {
-  if (PH.connected && !phoneLive() && !PH.lost) { PH.lost = true; PH.c = [0, 0, 0, 0]; toast('手機訊號中斷，球機放開搖桿'); }
-  if (!PH.connected || now - PH.hudT < 250) return;
-  PH.hudT = now;
-  let txt, msg = '';
-  if (!$('#select').hidden) { txt = 'SELECT PILOT'; msg = '按「技能」或「開始」確認出戰'; }
-  else if (!$('#menu').hidden) { txt = '設定選單'; msg = '在電腦上選擇練習或比賽，或按「開始」'; }
-  else if (M.mode === 'practice') {
-    txt = `穿環 ${P.count}　${P.dur ? fmt(Math.max(0, P.dur - P.t)) : fmt(P.t)}`;
-    msg = M.phase === 'pover' ? '時間到！按「重練」再來一次' : M.phase === 'pcount' ? '準備起飛…' : '';
-  } else {
-    txt = `紅 ${M.goals[0]} : ${M.goals[1]} 藍　${fmt(M.clock)}`;
-    msg = M.phase === 'over' ? '比賽結束，按「開始」重新選角' : M.paused ? '暫停中' : '';
+  if (SL.n) for (const k of ['skill', 'start', 'cam', 'retry', 'swap']) if ((n[k] | 0) > (SL.n[k] | 0)) phoneButton(i, k);
+  SL.n = Object.assign({}, n);
+  // stick navigation on the pilot select screen, for whoever is picking
+  if (selOpen() && SEL.player === i) {
+    const h = Math.abs(SL.c[1]) > Math.abs(SL.c[3]) ? SL.c[1] : SL.c[3];
+    const v = Math.abs(SL.c[0]) > Math.abs(SL.c[2]) ? SL.c[0] : SL.c[2];
+    const hx = h > 0.6 ? 1 : h < -0.6 ? -1 : 0, vy = v > 0.6 ? 1 : v < -0.6 ? -1 : 0;
+    if (hx && hx !== SL.nav.x) selMove(hx);
+    if (vy && vy !== SL.nav.y) selMove(vy > 0 ? -5 : 5);
+    SL.nav.x = Math.abs(h) < 0.3 ? 0 : hx || SL.nav.x; SL.nav.y = Math.abs(v) < 0.3 ? 0 : vy || SL.nav.y;
   }
-  phoneSend({ t:'h', txt, msg, fl:S.flight });
+}
+const userOf = i => i ? M.user2 : M.user;
+function phoneButton(i, k) {
+  if (k === 'start') onStartButton();
+  else if (k === 'cam') cycleCam(i);
+  else if (k === 'swap') { if (selOpen() && SEL.player === i) selPos(SEL.pos + 1); else switchDrone(1, i); }
+  else if (k === 'retry') { if (M.mode === 'practice' && i === 0) startPractice(); }
+  else if (k === 'skill') {
+    if (!$('#lobby').hidden) lobbyGo();
+    else if (selOpen()) { if (SEL.player === i) confirmSelect(false); }
+    else if (M.phase === 'intro') endVS();
+    else useSkill(userOf(i));
+  }
+}
+function phoneSend(i, msg) { const SL = PHS[i]; if (SL.connected && SL.conn && SL.conn.open) { try { SL.conn.send(msg); } catch (e) {} } }
+const phoneEv = (i, k) => phoneSend(i, { t:'ev', k });
+const userSlot = d => d && d === M.user ? 0 : d && d === M.user2 ? 1 : -1;
+function phoneTick(now) {
+  for (const SL of PHS) {
+    const i = SL.i;
+    if (SL.connected && !phoneLive(i) && !SL.lost) { SL.lost = true; SL.c = [0, 0, 0, 0]; toast(`P${i + 1} 手機訊號中斷，球機放開搖桿`); }
+    if (!SL.connected || now - SL.hudT < 250) continue;
+    SL.hudT = now;
+    const two = S.play !== 'solo';
+    const myTeam = i === 1 && S.play === 'versus' ? 1 - S.team : S.team;
+    let txt, msg = '';
+    if (!$('#lobby').hidden) { txt = `P${i + 1} 已連線`; msg = '等待電腦按「進入選角」，或按「技能」開始'; }
+    else if (!$('#select').hidden) {
+      if (SEL.player === i) { txt = 'SELECT PILOT'; msg = '左右推搖桿選飛手，「換機」換位置，「技能」確認'; }
+      else { txt = `等待 P${SEL.player + 1} 選角…`; }
+    }
+    else if (!$('#menu').hidden) { txt = '設定選單'; msg = '在電腦上選擇練習或比賽，或按「開始」'; }
+    else if (M.mode === 'practice') {
+      txt = i === 0 ? `穿環 ${P.count}　${P.dur ? fmt(Math.max(0, P.dur - P.t)) : fmt(P.t)}` : '練習模式只有 P1';
+      msg = i ? '' : M.phase === 'pover' ? '時間到！按「重練」再來一次' : M.phase === 'pcount' ? '準備起飛…' : '';
+    } else {
+      txt = `紅 ${M.goals[0]} : ${M.goals[1]} 藍　${fmt(M.clock)}`;
+      msg = M.phase === 'over' ? '比賽結束，按「開始」重新選角' : M.paused ? '暫停中' : '';
+    }
+    phoneSend(i, { t:'h', txt, msg, fl:S.flight, who:two ? `P${i + 1}・${TEAMS[myTeam].name}` : '', tm:two ? TEAMS[myTeam].css : '' });
+  }
+}
+
+/* ---------------- Second player's own controls (phone slot 2 or 2nd USB pad) ---------------- */
+const GP2 = { idx:null, axes:[], prev:[], name:'' };
+function pollGamepad2() {
+  let pads = [];
+  try { pads = navigator.getGamepads ? Array.from(navigator.getGamepads()).filter(x => x && x.connected) : []; } catch (e) {}
+  const p = pads[S.input === 'gamepad' ? 1 : 0];
+  if (!p) { GP2.idx = null; GP2.axes = []; return; }
+  GP2.idx = p.index; GP2.name = p.id; GP2.axes = Array.from(p.axes);
+  const btn = p.buttons.map(b => b.pressed), edge = n => btn[n] && !GP2.prev[n];
+  if (selOpen() && SEL.player === 1) {
+    if (edge(14)) selMove(-1); if (edge(15)) selMove(1); if (edge(12)) selMove(-5); if (edge(13)) selMove(5);
+    if (edge(4)) selPos(SEL.pos - 1); if (edge(5)) selPos(SEL.pos + 1); if (edge(0) || edge(9)) confirmSelect(false);
+  } else {
+    if (edge(9)) onStartButton(); if (edge(8)) switchDrone(1, 1); if (edge(3)) cycleCam(1);
+    if (edge(0) || edge(5)) { if (M.phase === 'intro') endVS(); else useSkill(M.user2); }
+  }
+  GP2.prev = btn;
+}
+function readDevice2() {
+  const out = { thr:0, yaw:0, pitch:0, roll:0 };
+  if (S.play === 'solo') return out;
+  pollGamepad2();
+  if (GP2.axes.length) for (const f of ['thr', 'yaw', 'pitch', 'roll']) {
+    const m = S.map[f]; let v = GP2.axes[m.a] || 0; if (m.inv) v = -v; v = dz(v); out[f] += f === 'thr' ? v : expo(v);
+  }
+  if (phoneLive(1)) ['thr', 'yaw', 'pitch', 'roll'].forEach((f, i) => { const v = dz(PHS[1].c[i]); out[f] += f === 'thr' ? v : expo(v); });
+  for (const f in out) out[f] = clamp(out[f], -1, 1);
+  return out;
 }
 
 function readDevice() {
@@ -4344,19 +4545,26 @@ function serStat(t, warn) { const el = $('#serStat'); el.textContent = t; el.cla
 
 /* ---------------- Controls actions ---------------- */
 const CAMS = ['追尾', '飛手區', '轉播', 'FPV'];
-function cycleCam() { M.camChosen = true; M.cam = (M.cam + 1) % CAMS.length; $('#hudCam').textContent = CAMS[M.cam]; }
+function cycleCam(who = 0) {
+  if (who) { M.cam2 = ((M.cam2 || 0) + 1) % CAMS.length; $('#hudCam2').textContent = CAMS[M.cam2]; return; }
+  M.camChosen = true; M.cam = (M.cam + 1) % CAMS.length; $('#hudCam').textContent = CAMS[M.cam];
+}
 function toggleFlight() { S.flight = S.flight === 'assist' ? 'manual' : 'assist'; save(); syncForm(); toast(S.flight === 'assist' ? '飛行模式：定高輔助' : '飛行模式：手動油門（自穩）'); }
-function switchDrone(step) {
+function switchDrone(step, who = 0) {
   if (M.mode === 'practice') return;
-  if (!M.user || M.phase === 'penalty' || M.phase === 'penaltySetup') return;
-  const mates = byTeam(M.user.team); const i = mates.indexOf(M.user);
-  const nd = mates[(i + step + 3) % 3];
-  nd.armed = M.user.armed || nd.armed;
-  setUser(nd); toast(`改為操控 ${pilotName(nd)}（${ROLE_NAME[nd.role]}）`);
+  const u = userOf(who), other = userOf(1 - who);
+  if (!u || M.phase === 'penalty' || M.phase === 'penaltySetup') return;
+  const mates = byTeam(u.team).filter(d => d !== other);
+  const i = mates.indexOf(u), nd = mates[(i + step + mates.length) % mates.length];
+  if (!nd || nd === u) return;
+  nd.armed = u.armed || nd.armed;
+  if (who) setUser2(nd); else setUser(nd);
+  toast(`${S.play !== 'solo' ? 'P' + (who + 1) + ' ' : ''}改為操控 ${pilotName(nd)}（${ROLE_NAME[nd.role]}）`);
 }
 function togglePause() { if (!M.started) return; M.paused = !M.paused; $('#clock').classList.toggle('paused', M.paused); if (M.paused) banner('PAUSED', '按 P 繼續', 0, '#ffb627'); else banner(''); }
 function onStartButton() {
-  if (selOpen()) confirmSelect(false);
+  if (!$('#lobby').hidden) lobbyGo();
+  else if (selOpen()) confirmSelect(false);
   else if (!$('#menu').hidden) resumeFromMenu();
   else if (M.phase === 'intro') endVS();
   else if (M.phase === 'over') openSelect();
@@ -4400,14 +4608,15 @@ function hudUpdate() {
 }
 
 const stc = $('#sticks'), sg = stc.getContext('2d');
-function drawSticks(inp) {
-  const w = stc.width, h = stc.height; sg.clearRect(0, 0, w, h);
+const stc2 = $('#sticks2'), sg2 = stc2.getContext('2d');
+function drawSticks(inp, cv = stc, g = sg, col = '#ffb627') {
+  const w = cv.width, h = cv.height; g.clearRect(0, 0, w, h);
   const R = h * 0.42;
   [[w * 0.25, inp.yaw, inp.thr, '偏航/油門'], [w * 0.75, inp.roll, inp.pitch, '平移/前後']].forEach(([cx, x, y]) => {
     const cy = h / 2;
-    sg.strokeStyle = '#2b3a4b'; sg.lineWidth = 2; sg.beginPath(); sg.arc(cx, cy, R, 0, 7); sg.stroke();
-    sg.beginPath(); sg.moveTo(cx - R, cy); sg.lineTo(cx + R, cy); sg.moveTo(cx, cy - R); sg.lineTo(cx, cy + R); sg.stroke();
-    sg.fillStyle = '#ffb627'; sg.beginPath(); sg.arc(cx + x * R * 0.85, cy - y * R * 0.85, 9, 0, 7); sg.fill();
+    g.strokeStyle = '#2b3a4b'; g.lineWidth = 2; g.beginPath(); g.arc(cx, cy, R, 0, 7); g.stroke();
+    g.beginPath(); g.moveTo(cx - R, cy); g.lineTo(cx + R, cy); g.moveTo(cx, cy - R); g.lineTo(cx, cy + R); g.stroke();
+    g.fillStyle = col; g.beginPath(); g.arc(cx + x * R * 0.85, cy - y * R * 0.85, 9, 0, 7); g.fill();
   });
 }
 
@@ -4433,26 +4642,28 @@ function drawMini() {
     const rad = 5 + (d.pos.y / A.H) * 7;
     mg.fillStyle = TEAMS[d.team].css; mg.beginPath(); mg.arc(x, y, rad, 0, 7); mg.fill();
     if (d.role === 'striker') { mg.strokeStyle = '#' + REAR[d.team][0].toString(16).padStart(6, '0'); mg.lineWidth = 3; mg.stroke(); }
-    if (d === M.user) { mg.strokeStyle = '#fff'; mg.lineWidth = 2; mg.beginPath(); mg.arc(x, y, rad + 4, 0, 7); mg.stroke(); }
+    if (d === M.user || d === M.user2) { mg.strokeStyle = d === M.user2 ? '#35e0ff' : S.play === 'solo' ? '#fff' : '#ffb627'; mg.lineWidth = 2.5; mg.beginPath(); mg.arc(x, y, rad + 4, 0, 7); mg.stroke(); }
     mg.strokeStyle = 'rgba(255,255,255,.6)'; mg.lineWidth = 1.5; mg.beginPath(); mg.moveTo(x, y); mg.lineTo(x + Math.cos(d.yaw) * (rad + 6), y - Math.sin(d.yaw) * (rad + 6)); mg.stroke();
   }
 }
 
 /* ---------------- Camera ---------------- */
 const camPos = new V3(4, 3, 6), camLook = new V3(0, 1, 0), _cl = new V3(), _cp = new V3();
+const camera2 = new THREE.PerspectiveCamera(62, 1, 0.02, 200);
+const VIEWS = [{ cam:camera, pos:camPos, look:camLook }, { cam:camera2, pos:new V3(4, 3, -6), look:new V3(0, 1, 0) }];
 const _qq = new THREE.Quaternion(), _qOff = new THREE.Quaternion().setFromEuler(new THREE.Euler(14 * DEG, -Math.PI / 2, 0, 'YXZ'));
-function updateCamera(dt) {
-  const d = M.user || roleOf(0, 'striker');
-  if (!d) return;
+// place one view's camera; returns the drone to hide (FPV) or null
+function aimView(V, d, mode, dt) {
+  const camera = V.cam;
+  if (!d) return null;
   const cs = A.cs; let fov = 62;
-  const mode = M.user ? M.cam : (M.cam === 3 ? 2 : M.cam);
   if (mode === 3) {
-    fov = 96; drones.forEach(x => x.root.visible = true); camera.position.copy(d.pos);
+    camera.position.copy(d.pos);
     _qq.copy(d.body.quaternion).multiply(_qOff); camera.quaternion.copy(_qq);
-    if (camera.fov !== fov) { camera.fov = fov; camera.updateProjectionMatrix(); }
-    d.root.visible = false; return;
+    if (camera.fov !== 96) { camera.fov = 96; camera.updateProjectionMatrix(); }
+    V.pos.copy(d.pos); V.look.copy(d.pos);
+    return d;
   }
-  drones.forEach(x => x.root.visible = true);
   if (mode === 0) {
     const fx = Math.cos(d.yaw), fz = -Math.sin(d.yaw);
     _cp.set(d.pos.x - fx * 1.15 * cs, d.pos.y + 0.42 * cs, d.pos.z - fz * 1.15 * cs);
@@ -4466,9 +4677,40 @@ function updateCamera(dt) {
     _cl.set(d.pos.x * 0.7, A.H * 0.35, d.pos.z * 0.3); fov = 55;
   }
   const k = 1 - Math.exp(-dt * (mode === 1 ? 10 : 6));
-  camPos.lerp(_cp, k); camLook.lerp(_cl, 1 - Math.exp(-dt * 10));
-  camera.position.copy(camPos); camera.lookAt(camLook);
+  V.pos.lerp(_cp, k); V.look.lerp(_cl, 1 - Math.exp(-dt * 10));
+  camera.position.copy(V.pos); camera.lookAt(V.look);
   if (Math.abs(camera.fov - fov) > 0.1) { camera.fov = lerp(camera.fov, fov, 0.2); camera.updateProjectionMatrix(); }
+  return null;
+}
+const splitOn = () => twoP() && M.started && $('#menu').hidden && $('#select').hidden && $('#lobby').hidden;
+function renderViews(dt) {
+  const w = innerWidth, h = innerHeight;
+  const show = d => { drones.forEach(x => x.root.visible = x !== d); };
+  if (!splitOn()) {
+    const d = M.user || M.userSaved || roleOf(0, 'striker');
+    const mode = M.user ? M.cam : (M.cam === 3 ? 2 : M.cam);
+    if (Math.abs(camera.aspect - w / h) > 1e-3) { camera.aspect = w / h; camera.updateProjectionMatrix(); }
+    show(aimView(VIEWS[0], d, mode, dt));
+    renderer.setViewport(0, 0, w, h); renderer.render(scene, camera);
+    return;
+  }
+  const hw = Math.floor(w / 2);
+  renderer.setScissorTest(true);
+  [[M.user || M.userSaved, M.cam, 0], [M.user2 || M.user2Saved, M.cam2 || 0, 1]].forEach(([d, mode, i]) => {
+    const V = VIEWS[i], vw = i ? w - hw : hw;
+    if (Math.abs(V.cam.aspect - vw / h) > 1e-3) { V.cam.aspect = vw / h; V.cam.updateProjectionMatrix(); }
+    show(aimView(V, d || roleOf(i ? 1 : 0, 'striker'), d ? mode : 2, dt));
+    renderer.setViewport(i ? hw : 0, 0, vw, h); renderer.setScissor(i ? hw : 0, 0, vw, h);
+    renderer.render(scene, V.cam);
+  });
+  renderer.setScissorTest(false);
+  drones.forEach(x => x.root.visible = true);
+}
+function splitUI() {
+  const on = splitOn();
+  if (on === splitUI.last) return; splitUI.last = on;
+  $('#splitBar').hidden = !on; $('#tagP1').hidden = !on; $('#tagP2').hidden = !on;
+  $('#inp2').hidden = !(twoP() && M.started); $('#keys').hidden = twoP() && M.started;
 }
 
 /* ---------------- Audio ---------------- */
@@ -4484,17 +4726,18 @@ function beepSeq(seq, type) { let t = 0; for (const [f, d] of seq) { beep(f, d, 
 
 /* ---------------- Main loop ---------------- */
 const STEP = 1 / 120;
-let acc = 0, lastT = performance.now(), userCmd = { thr:0, yaw:0, pitch:0, roll:0 };
+let acc = 0, lastT = performance.now(), userCmd = { thr:0, yaw:0, pitch:0, roll:0 }, userCmd2 = { thr:0, yaw:0, pitch:0, roll:0 };
 function frame(now) {
   requestAnimationFrame(frame);
   let dt = Math.min(0.05, (now - lastT) / 1000); lastT = now;
   kbUpdate(dt);
   const dev = readDevice();
   userCmd = { thr: clamp(KB.thr + dev.thr, -1, 1), yaw: clamp(KB.yaw + dev.yaw, -1, 1), pitch: clamp(KB.pitch + dev.pitch, -1, 1), roll: clamp(KB.roll + dev.roll, -1, 1) };
-  const running = $('#menu').hidden && $('#select').hidden && !M.paused && M.started;
+  userCmd2 = readDevice2();
+  const running = $('#menu').hidden && $('#select').hidden && $('#lobby').hidden && !M.paused && M.started;
   if (running) {
     gameLogic(dt);
-    for (const d of drones) if (d.ai) aiThink(d, dt); else Object.assign(d.input, d.armed ? userCmd : { thr:0, yaw:0, pitch:0, roll:0 });
+    for (const d of drones) if (d.ai) aiThink(d, dt); else Object.assign(d.input, !d.armed ? { thr:0, yaw:0, pitch:0, roll:0 } : d === M.user2 ? userCmd2 : userCmd);
     acc += dt;
     while (acc >= STEP) {
       for (const d of drones) d.prev.copy(d.pos);
@@ -4502,7 +4745,7 @@ function frame(now) {
       collidePairs();
       if (M.mode === 'practice' && M.phase === 'practice' && M.user) practiceStep(M.user);
       if (M.phase === 'play' || M.phase === 'penalty') for (const d of drones) checkRules(d, STEP);
-      if (M.phase === 'arming' && M.user && M.user.pos.y > A.ballR + 0.04 * A.cs) penaltyAgainst(M.user.team, '鳴聲前提早起飛');
+      if (M.phase === 'arming') for (const u of [M.user, M.user2]) if (u && u.pos.y > A.ballR + 0.04 * A.cs) { penaltyAgainst(u.team, (S.play !== 'solo' ? (u === M.user ? 'P1 ' : 'P2 ') : '') + '鳴聲前提早起飛'); break; }
       acc -= STEP;
     }
   }
@@ -4521,14 +4764,23 @@ function frame(now) {
     } else d.aura.visible = false;
   }
   for (let t = 0; t < 2; t++) pilotSprites[t].forEach((sp, i) => {
-    const active = M.user && M.user.team === t && M.user.idx === i;
+    const active = [M.user, M.user2].some(u => u && u.team === t && u.idx === i);
     const amp = active ? 0.05 : 0.015, sp2 = active ? 180 : 420;
     sp.position.y = sp.userData.baseY + Math.abs(Math.sin(now / sp2 + i * 1.7)) * amp;
   });
   for (const R of rings) { if (R.flash > 0) { R.flash -= dt; R.mat.emissiveIntensity = 0.55 + Math.abs(Math.sin(R.flash * 14)) * 1.6; } else R.mat.emissiveIntensity = 0.55; }
-  updateCamera(dt);
-  renderer.render(scene, camera);
+  renderViews(dt); splitUI();
   hudUpdate(); squadUpdate(); drawSticks(userCmd); drawMini();
+  if (twoP() && M.started) {
+    drawSticks(userCmd2, stc2, sg2, '#35e0ff');
+    $('#hudSrc2').textContent = phoneLive(1) ? '手機遙控' : GP2.idx != null ? 'USB 手把 #2' : '未連線';
+    const u2 = M.user2, sk2 = u2 && u2.skill && SKILLS[u2.skill];
+    if (sk2) {
+      const pct = u2.skillT > 0 ? u2.skillT / sk2.dur : u2.cd > 0 ? 1 - u2.cd / (sk2.cd + sk2.dur) : 1;
+      $('#skBar2').style.width = (pct * 100).toFixed(1) + '%'; $('#skillBox2').classList.toggle('ready', u2.cd <= 0);
+    }
+  }
+  lobbyTick();
   if (M.mode === 'practice') practiceHUD(now);
   phoneTick(now);
   if (!$('#menu').hidden) menuMonitor();
@@ -4561,25 +4813,94 @@ function gameLogic(dt) {
   }
 }
 
+/* ---------------- 2-player lobby ---------------- */
+function openLobby() {
+  audioInit();
+  $('#menu').hidden = true; $('#select').hidden = true; $('#lobby').hidden = false;
+  const vs = S.play === 'versus';
+  $('#lbMode').textContent = vs ? 'VERSUS' : 'CO-OP';
+  $('#lbSub').textContent = vs ? '1 對 1：P1 紅隊對 P2 藍隊，各帶 2 位 AI 隊友' : '雙人合作：P1、P2 同一隊，對抗 AI 隊伍';
+  const t0 = S.team, t1 = vs ? 1 - S.team : S.team;
+  [[0, t0], [1, t1]].forEach(([i, t]) => {
+    $('#lbc' + i).className = 'lb-card t' + t;
+    $('#lbTeam' + i).textContent = TEAMS[t].name; $('#lbTeam' + i).style.color = TEAMS[t].css;
+  });
+  phoneHost(1, false);
+  if (S.input === 'phone') phoneHost(0, false);
+  lobbyTick();
+}
+function lobbyTick() {
+  if ($('#lobby').hidden) return;
+  const p1phone = S.input === 'phone';
+  $('#lbPhone0').hidden = !p1phone; $('#lbUsePhone0').hidden = p1phone;
+  const dev1 = p1phone ? (phoneLive(0) ? '手機遙控（已連線）' : '手機遙控：請掃描下方 QR code')
+    : S.input === 'serial' ? (SER.on ? 'Arduino PS2 搖桿＋鍵盤' : 'Arduino PS2（尚未連接）＋鍵盤')
+    : S.input === 'gamepad' ? (GP.idx != null ? 'USB 手把 #1＋鍵盤' : 'USB 手把 #1（未偵測）＋鍵盤') : '鍵盤：W S A D ＋ 方向鍵、Space 技能';
+  $('#lbDev0').textContent = '操控：' + dev1;
+  const r1 = p1phone ? phoneLive(0) : true;
+  const r2 = phoneLive(1) || GP2.idx != null;
+  $('#lbDev1').textContent = '操控：' + (phoneLive(1) ? '手機遙控（已連線）' : GP2.idx != null ? 'USB 手把 #2（已偵測）' : '尚未連線');
+  $('#lbc0').classList.toggle('ready', r1); $('#lbc1').classList.toggle('ready', r2);
+  $('#lbNote').textContent = r1 && r2 ? '兩位玩家都準備好了，按「進入選角」。P1 先選，P2 再選。' : 'P2 還沒連線也可以先進入選角，比賽前連上即可。';
+}
+function lobbyGo() { if ($('#lobby').hidden) return; $('#lobby').hidden = true; openSelect(); }
+function lobbyBack() { $('#lobby').hidden = true; openMenu(); }
+$('#lbGo').addEventListener('click', lobbyGo);
+$('#lbBack').addEventListener('click', lobbyBack);
+$('#lbUsePhone0').addEventListener('click', () => {
+  const r = document.getElementById('in-phone'); r.checked = true; r.dispatchEvent(new Event('change'));
+  phoneHost(0, false); lobbyTick();
+});
+
 /* ---------------- Pilot select ---------------- */
-const SEL = { cur:0, pos:0, lineup:[0, 1, 2] };
+const SEL = { cur:0, pos:0, lineup:[0, 1, 2], player:0, team:0, taken:[], lockPos:-1, lockK:-1 };
+const selFree = k => !SEL.taken.includes(k) && k !== SEL.lockK;
 const selOpen = () => !$('#select').hidden;
 const POS_WANT = ['atk', 'all', 'def'];
 function lineupFor(cur, pos) {
   const L = SEL.lineup.slice(); L[pos] = cur;
-  for (let p = 0; p < 3; p++) if (p !== pos && (L[p] === cur || L.indexOf(L[p]) !== p)) L[p] = -1;
+  for (let p = 0; p < 3; p++) if (p !== pos && p !== SEL.lockPos && (L[p] === cur || L.indexOf(L[p]) !== p || SEL.taken.includes(L[p]))) L[p] = -1;
   for (let p = 0; p < 3; p++) if (L[p] === -1) {
-    let c = ROSTER.findIndex((r, k) => r.type === POS_WANT[p] && !L.includes(k));
-    if (c < 0) c = ROSTER.findIndex((r, k) => !L.includes(k));
+    let c = ROSTER.findIndex((r, k) => r.type === POS_WANT[p] && !L.includes(k) && !SEL.taken.includes(k));
+    if (c < 0) c = ROSTER.findIndex((r, k) => !L.includes(k) && !SEL.taken.includes(k));
     L[p] = c;
   }
   return L;
 }
+// set up the select screen for P1 (player 0) or P2 (player 1)
+function selBegin(player) {
+  SEL.player = player; SEL.taken = []; SEL.lockPos = -1; SEL.lockK = -1;
+  const vs = S.play === 'versus';
+  if (player === 0) {
+    SEL.team = S.team; SEL.lineup = S.lineup.slice();
+    const p = ROLES.indexOf(S.role); SEL.pos = p >= 0 ? p : 0;
+  } else if (vs) {
+    SEL.team = 1 - S.team; SEL.taken = S.lineup.slice(); SEL.lineup = S.lineup2.slice();
+    SEL.pos = Math.max(0, ROLES.indexOf(S.role2));
+    SEL.lineup = lineupFor(SEL.lineup[SEL.pos] != null && !SEL.taken.includes(SEL.lineup[SEL.pos]) ? SEL.lineup[SEL.pos] : ROSTER.findIndex((r, k) => !SEL.taken.includes(k)), SEL.pos);
+  } else {
+    SEL.team = S.team; SEL.lineup = S.lineup.slice();
+    SEL.lockPos = Math.max(0, ROLES.indexOf(S.role)); SEL.lockK = SEL.lineup[SEL.lockPos];
+    let p2 = ROLES.indexOf(S.role2); if (p2 < 0 || p2 === SEL.lockPos) p2 = [0, 1, 2].find(p => p !== SEL.lockPos);
+    SEL.pos = p2;
+  }
+  SEL.cur = SEL.lineup[SEL.pos];
+  const two = S.play !== 'solo';
+  const who = $('#selWho');
+  who.hidden = !two;
+  who.textContent = two ? `P${player + 1} 選角・${TEAMS[SEL.team].name}` : '';
+  who.style.background = TEAMS[SEL.team].css;
+  $('#selSpec').hidden = two;
+  $('#selGo').textContent = two && player === 0 ? '確認，換 P2 選' : '確認出戰';
+  const opp = two && vs ? (player === 0 ? null : S.team) : null;
+  if (two && vs && player === 0) $('#selOpp').innerHTML = '<span>對手由 P2 接著挑選</span>';
+  else if (opp != null) $('#selOpp').innerHTML = `<span>對手（P1 紅隊）</span>` + S.lineup.map(k => `<img alt="${esc(rName(k))}" title="${esc(rName(k))}" src="${faceURL(Object.assign({ id:'o' + k }, ROSTER[k].look))}">`).join('') + `<span>${S.lineup.map(rName).map(esc).join('・')}</span>`;
+  else $('#selOpp').innerHTML = `<span>對手</span>` + [0, 1, 2].map(i => `<img alt="${esc(OPP_KIT[i].name)}" title="${esc(OPP_KIT[i].name)}・${OPP_KIT[i].title}" src="${faceURL(Object.assign({ id:'op' + i }, OPP[i]))}">`).join('') + `<span>${OPP_KIT.map(o => o.name).join('・')}</span>`;
+  renderSelect();
+}
 function openSelect() {
   audioInit();
-  SEL.lineup = S.lineup.slice();
-  const p = ROLES.indexOf(S.role);
-  SEL.pos = p >= 0 ? p : 0; SEL.cur = SEL.lineup[SEL.pos];
+  $('#lobby').hidden = true;
   const grid = $('#selGrid'); grid.innerHTML = '';
   ROSTER.forEach((r, k) => {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'gc'; b.id = 'gc-' + k;
@@ -4588,32 +4909,41 @@ function openSelect() {
     b.addEventListener('click', () => { if (SEL.cur === k) confirmSelect(false); else selPick(k, true); });
     grid.appendChild(b);
   });
-  $('#selOpp').innerHTML = `<span>對手</span>` + [0, 1, 2].map(i => `<img alt="${esc(OPP_KIT[i].name)}" title="${esc(OPP_KIT[i].name)}・${OPP_KIT[i].title}" src="${faceURL(crewCfg(1 - S.team, i))}">`).join('') + `<span>${OPP_KIT.map(o => o.name).join('・')}</span>`;
   $('#select').classList.toggle('flat', !S.arcade); $('#flatNote').hidden = S.arcade;
   $('#menu').hidden = true; $('#select').hidden = false;
-  renderSelect();
+  selBegin(0);
 }
 function selPick(k, natural) {
+  if (!selFree(k)) { beep(220, 0.08, 'square', 0.04); toast(SEL.taken.includes(k) ? `${rName(k)} 已在對方隊伍` : `${rName(k)} 是 P1`); return; }
   SEL.cur = k;
-  if (natural) SEL.pos = TYPES[ROSTER[k].type].pos;
+  if (natural) { SEL.pos = TYPES[ROSTER[k].type].pos; if (SEL.pos === SEL.lockPos) SEL.pos = [0, 1, 2].find(p => p !== SEL.lockPos); }
   SEL.lineup = lineupFor(SEL.cur, SEL.pos);
   beep(880, 0.04, 'square', 0.04);
   renderSelect();
 }
-function selMove(step) { selPick((SEL.cur + step + ROSTER.length) % ROSTER.length, true); }
+function selMove(step) {
+  let k = SEL.cur;
+  for (let n = 0; n < ROSTER.length; n++) { k = (k + step + ROSTER.length * 5) % ROSTER.length; if (selFree(k)) break; if (Math.abs(step) > 1) step = Math.sign(step); }
+  selPick(k, true);
+}
 function selPos(p) {
-  SEL.pos = (p + 3) % 3; SEL.lineup = lineupFor(SEL.cur, SEL.pos);
+  const dir = p > SEL.pos ? 1 : -1;
+  p = (p + 3) % 3;
+  if (p === SEL.lockPos) p = (p + dir + 3) % 3;
+  if (p === SEL.lockPos || p === SEL.pos && SEL.lockPos >= 0) return;
+  SEL.pos = p; SEL.lineup = lineupFor(SEL.cur, SEL.pos);
   beep(660, 0.05, 'square', 0.04); renderSelect();
 }
 function selMate(p, step) {
-  if (p === SEL.pos) return;
+  if (p === SEL.pos || p === SEL.lockPos) return;
   let k = SEL.lineup[p];
-  for (let n = 0; n < ROSTER.length; n++) { k = (k + step + ROSTER.length) % ROSTER.length; if (!SEL.lineup.includes(k)) break; }
+  for (let n = 0; n < ROSTER.length; n++) { k = (k + step + ROSTER.length) % ROSTER.length; if (!SEL.lineup.includes(k) && !SEL.taken.includes(k)) break; }
   SEL.lineup[p] = k; beep(740, 0.04, 'square', 0.04); renderSelect();
 }
 function renderSelect() {
   const r = ROSTER[SEL.cur], sk = SKILLS[r.skill];
-  $('#selDetail').innerHTML = `<div class="ch-art"><span class="ch-tag">${ROLE_NAME[ROLES[SEL.pos]].toUpperCase()}</span><span class="ch-p1">P1</span><img alt="" src="${svgURL(Object.assign({ id:'d' + SEL.cur }, r.look))}"></div>
+  const me = 'P' + (SEL.player + 1), lockTag = 'P' + (2 - SEL.player);
+  $('#selDetail').innerHTML = `<div class="ch-art"><span class="ch-tag">${ROLE_NAME[ROLES[SEL.pos]].toUpperCase()}</span><span class="ch-p1"${SEL.player ? ' style="background:#35e0ff"' : ''}>${me}</span><img alt="" src="${svgURL(Object.assign({ id:'d' + SEL.cur }, r.look))}"></div>
     <div class="ch-body"><div class="ch-name">${esc(rName(SEL.cur))}</div><div class="ch-title">${r.title}・<span style="color:${TYPES[r.type].css}">${r.kind}</span>・${r.desc}</div>
     <div class="ch-stats">${STAT_NAMES.map(([key, lab]) => `<div><span>${lab}</span><i>${[1, 2, 3, 4, 5].map(n => `<b class="${n <= r.st[key] ? 'f' : ''}"></b>`).join('')}</i></div>`).join('')}</div>
     <div class="ch-skill"><b style="color:${sk.css}">${sk.name} ${sk.en}</b><span>${sk.desc}</span></div></div>`;
@@ -4621,29 +4951,41 @@ function renderSelect() {
     const b = $('#gc-' + k); if (!b) return;
     const p = SEL.lineup.indexOf(k);
     b.classList.toggle('sel', k === SEL.cur); b.classList.toggle('mate', p >= 0 && k !== SEL.cur);
-    b.querySelector('.ps').textContent = p >= 0 ? ROLE_NAME[ROLES[p]][0] : '';
+    b.classList.toggle('taken', SEL.taken.includes(k));
+    b.querySelector('.ps').textContent = SEL.taken.includes(k) ? '對手' : p >= 0 ? (p === SEL.lockPos ? lockTag : ROLE_NAME[ROLES[p]][0]) : '';
   });
   const cur = $('#gc-' + SEL.cur); if (cur && cur.focus) cur.focus({ preventScroll:true });
-  $('#selPos').innerHTML = ROLES.map((role, p) => `<button type="button" class="${p === SEL.pos ? 'on' : ''}" data-p="${p}">${ROLE_NAME[role]}</button>`).join('');
+  $('#selPos').innerHTML = ROLES.map((role, p) => `<button type="button" class="${p === SEL.pos ? 'on' : ''}" data-p="${p}"${p === SEL.lockPos ? ' disabled' : ''}>${ROLE_NAME[role]}${p === SEL.lockPos ? '（' + lockTag + '）' : ''}</button>`).join('');
   $('#selPos').querySelectorAll('button').forEach(b => b.addEventListener('click', () => selPos(+b.dataset.p)));
   $('#selLineup').innerHTML = ROLES.map((role, p) => {
-    const k = SEL.lineup[p], me = p === SEL.pos;
-    return `<div class="ls${me ? ' me' : ''}"><span class="lr">${ROLE_NAME[role]}</span>
+    const k = SEL.lineup[p], mine = p === SEL.pos, locked = p === SEL.lockPos;
+    return `<div class="ls${mine ? ' me' : ''}"><span class="lr">${ROLE_NAME[role]}</span>
       <img alt="" src="${faceURL(Object.assign({ id:'l' + k }, ROSTER[k].look))}">
-      <span class="ln">${esc(rName(k))}${me ? '（你）' : ''}</span>
-      ${me ? '<span class="lt">P1</span>' : `<span class="la"><button type="button" data-p="${p}" data-s="-1" aria-label="上一位隊友">‹</button><button type="button" data-p="${p}" data-s="1" aria-label="下一位隊友">›</button></span>`}</div>`;
+      <span class="ln">${esc(rName(k))}${mine ? '（你）' : ''}</span>
+      ${mine ? `<span class="lt">${me}</span>` : locked ? `<span class="lt" style="color:#ffb627">${lockTag}</span>` : `<span class="la"><button type="button" data-p="${p}" data-s="-1" aria-label="上一位隊友">‹</button><button type="button" data-p="${p}" data-s="1" aria-label="下一位隊友">›</button></span>`}</div>`;
   }).join('');
   $('#selLineup').querySelectorAll('.la button').forEach(b => b.addEventListener('click', () => selMate(+b.dataset.p, +b.dataset.s)));
 }
 function confirmSelect(spectate) {
   if (!selOpen()) return;
-  S.lineup = SEL.lineup.slice();
-  S.role = spectate ? 'spectate' : ROLES[SEL.pos]; save(); buildCrew();
+  const two = S.play !== 'solo';
+  if (two && spectate) return;
+  if (SEL.player === 0) {
+    S.lineup = SEL.lineup.slice(); S.role = spectate ? 'spectate' : ROLES[SEL.pos];
+    if (two) {
+      if (S.play === 'coop' && S.role2 === S.role) S.role2 = ROLES[(ROLES.indexOf(S.role) + 1) % 3];
+      save(); beepSeq([[660, 0.06], [990, 0.1]], 'square'); selBegin(1); return;
+    }
+  } else {
+    if (S.play === 'versus') S.lineup2 = SEL.lineup.slice(); else S.lineup = SEL.lineup.slice();
+    S.role2 = ROLES[SEL.pos];
+  }
+  save(); buildCrew();
   $('#select').hidden = true;
   needRestart = false; $('#footNote').textContent = '按 Esc 隨時回到這裡。';
   newMatch();
 }
-function closeSelect() { $('#select').hidden = true; openMenu(); }
+function closeSelect() { if (SEL.player === 1) { selBegin(0); return; } $('#select').hidden = true; if (S.play !== 'solo') openLobby(); else openMenu(); }
 $('#selGo').addEventListener('click', () => confirmSelect(false));
 $('#selSpec').addEventListener('click', () => confirmSelect(true));
 $('#selBack').addEventListener('click', closeSelect);
@@ -4653,19 +4995,23 @@ const radios = (name, key, parse) => document.querySelectorAll(`input[name="${na
   el.addEventListener('change', () => { S[key] = parse ? parse(el.value) : el.value; save(); onSettingChange(key); });
 });
 radios('arena', 'arena'); radios('team', 'team', Number); radios('arcade', 'arcade', v => v === '1'); radios('setsec', 'setSec', Number);
+radios('play', 'play');
 radios('pdur', 'pDur', Number); radios('plevel', 'pLevel', Number); radios('phints', 'pHints', v => v === '1');
 radios('diff', 'diff', Number); radios('flight', 'flight'); radios('input', 'input');
 function syncForm() {
   const set = id => { const el = document.getElementById(id); if (el) el.checked = true; };
-  set('ar-' + S.arena); set('tm-' + S.team); set('gm-' + (S.arcade ? 1 : 0)); set('pd-' + S.pDur); set('pl-' + S.pLevel); set('ph-' + (S.pHints ? 1 : 0)); set('ss-' + S.setSec); set('df-' + S.diff); set('fl-' + S.flight); set('in-' + S.input);
+  set('ar-' + S.arena); set('tm-' + S.team); set('pm-' + S.play); set('gm-' + (S.arcade ? 1 : 0));
+  $('#playNote').textContent = S.play === 'versus' ? '1 對 1：P1 帶紅隊、P2 帶藍隊，各有 2 位 AI 隊友。電腦畫面左右分割。'
+    : S.play === 'coop' ? '雙人合作：兩人同一隊，與第 3 位 AI 隊友一起對抗 AI 隊伍。電腦畫面左右分割。'
+    : '一人操控，其他球機由 AI 控制。'; set('pd-' + S.pDur); set('pl-' + S.pLevel); set('ph-' + (S.pHints ? 1 : 0)); set('ss-' + S.setSec); set('df-' + S.diff); set('fl-' + S.flight); set('in-' + S.input);
   $('#serBox').hidden = S.input !== 'serial'; $('#gpBox').hidden = S.input !== 'gamepad';
   $('#phBox').hidden = S.input !== 'phone'; $('#raw').hidden = S.input === 'phone' || S.input === 'keyboard'; $('#mapTable').hidden = S.input === 'phone' || S.input === 'keyboard';
-  if (S.input === 'phone') phoneHost(false);
+  if (S.input === 'phone') phoneHost(0, false);
   buildMapTable();
 }
 let needRestart = false;
 function onSettingChange(key) {
-  if (['arena', 'team', 'setSec', 'arcade'].includes(key) && M.started) { needRestart = true; $('#footNote').textContent = '設定已變更，按「以新設定開始」重新選角開賽。'; }
+  if (['arena', 'team', 'setSec', 'arcade', 'play'].includes(key) && M.started) { needRestart = true; $('#footNote').textContent = '設定已變更，按「以新設定開始」重新選角開賽。'; }
   if (key === 'arena' && !M.started) { buildArena(); makeTeams(); drones.forEach(placeAtStart); }
   if (key === 'team' && !M.started) { drones.forEach(applyChar); buildPilots(); buildSquads(); }
   if (key === 'role') buildCrew();
@@ -4675,7 +5021,7 @@ function onSettingChange(key) {
 }
 function updateStartLabel() {
   const prac = M.mode === 'practice' && M.started;
-  $('#btnStart').textContent = !M.started ? '開始 3v3 比賽' : needRestart ? '以新設定開始比賽' : prac ? '回到練習' : '繼續比賽';
+  $('#btnStart').textContent = !M.started ? (S.play === 'solo' ? '開始 3v3 比賽' : S.play === 'versus' ? '開始雙人 1 對 1' : '開始雙人合作') : needRestart ? '以新設定開始比賽' : prac ? '回到練習' : '繼續比賽';
   $('#btnRestart').hidden = !M.started || needRestart;
   $('#btnRestart').textContent = prac ? '改打 3v3 比賽' : '重新開始比賽';
   renderPracticeCard();
@@ -4683,11 +5029,11 @@ function updateStartLabel() {
 function openMenu() { $('#menu').hidden = false; updateStartLabel(); }
 function resumeFromMenu() {
   audioInit();
-  if (!M.started || needRestart) { openSelect(); return; }
+  if (!M.started || needRestart) { if (S.play !== 'solo') openLobby(); else openSelect(); return; }
   $('#menu').hidden = true;
 }
 $('#btnStart').addEventListener('click', resumeFromMenu);
-$('#btnRestart').addEventListener('click', () => openSelect());
+$('#btnRestart').addEventListener('click', () => { if (S.play !== 'solo' && M.mode === 'practice') openLobby(); else openSelect(); });
 $('#btnSer').addEventListener('click', serialConnect);
 $('#btnCal').addEventListener('click', () => { if (!SER.on) { serStat('請先連接 Arduino，放開搖桿後再按校正。', true); return; } S.center = SER.raw.slice(); save(); serStat(`中心已設為 ${S.center.join(' / ')}`); });
 $('#btnM2').addEventListener('click', () => { S.map = { thr:{a:1,inv:true}, yaw:{a:0,inv:false}, pitch:{a:3,inv:true}, roll:{a:2,inv:false} }; save(); buildMapTable(); });
