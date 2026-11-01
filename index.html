@@ -8,7 +8,28 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;700;800&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap">
-<script>if (/[?&]pad=/.test(location.search)) { document.documentElement.classList.add('padmode'); window.__PADMODE = true; }</script>
+<script>
+(function () {
+  var standalone = window.navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches);
+  var q = location.search;
+  // a home-screen launch of the controller may arrive without ?pad, so remember that this install is the pad
+  try { if (/[?&]pad=/.test(q)) localStorage.setItem('sfpad-isPad', '1'); } catch (e) {}
+  var isPad = /[?&]pad=/.test(q);
+  try { if (!isPad && standalone && localStorage.getItem('sfpad-isPad') === '1') isPad = true; } catch (e) {}
+  if (!isPad) return;
+  document.documentElement.classList.add('padmode'); window.__PADMODE = true; window.__STANDALONE = standalone;
+  var add = function (tag, attrs) { var el = document.createElement(tag); for (var k in attrs) el.setAttribute(k, attrs[k]); document.head.appendChild(el); };
+  add('meta', { name:'apple-mobile-web-app-capable', content:'yes' });
+  add('meta', { name:'mobile-web-app-capable', content:'yes' });
+  add('meta', { name:'apple-mobile-web-app-status-bar-style', content:'black-translucent' });
+  add('meta', { name:'apple-mobile-web-app-title', content:'Skyfence 遙控' });
+  add('meta', { name:'theme-color', content:'#0a0e13' });
+  if (/^https?:$/.test(location.protocol)) {
+    add('link', { rel:'apple-touch-icon', href:'art/pad-icon-180.png' });
+    add('link', { rel:'manifest', href:'pad.webmanifest' });
+  }
+})();
+</script>
 <style>
 /* Layout: full-bleed 3D arena; HUD pinned to the four corners like a broadcast overlay; setup is a two-column sheet laid over the dimmed arena. */
 :root{
@@ -312,7 +333,7 @@ details li{margin-bottom:4px}
 .pr-phone{background:none;border:1px dashed #4a5d77;color:#c3cdd9;font-size:13px;padding:6px 12px}
 
 /* ---------- phone pad (controller page) ---------- */
-html.padmode,html.padmode body{height:100%;overflow:hidden;overscroll-behavior:none}
+html.padmode,html.padmode body{height:100%;height:100dvh;overflow:hidden;overscroll-behavior:none;position:fixed;inset:0;width:100%}
 html.padmode body > *:not(#pad):not(script){display:none!important}
 #pad{position:fixed;inset:0;display:grid;grid-template-rows:auto minmax(0,1fr);background:radial-gradient(ellipse at 50% 0%,#1a2a42,#0a0e13 65%);color:var(--text);
   touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;
@@ -332,7 +353,7 @@ html.padmode body > *:not(#pad):not(script){display:none!important}
 .pd-btns button{padding:10px 6px;font-size:14px;touch-action:none}
 .pd-btns button.big{grid-column:1/-1;background:var(--amber);border-color:var(--amber);color:#1b1306;font-weight:800;font-size:17px;padding:12px}
 .pd-btns button.hit{transform:scale(.95);filter:brightness(1.3)}
-.stick{position:relative;width:min(40vw,64vh);aspect-ratio:1;touch-action:none}
+.stick{position:relative;width:var(--stick,min(40vw,60dvh));height:var(--stick,min(40vw,60dvh));touch-action:none}
 #stL{grid-area:L} #stR{grid-area:R}
 .stick .ring{position:absolute;inset:0;border-radius:50%;border:2px solid #3a4b62;background:radial-gradient(circle,rgba(46,139,255,.08),rgba(10,14,19,.6) 70%)}
 .stick .ring::before,.stick .ring::after{content:"";position:absolute;background:#26354a}
@@ -341,12 +362,20 @@ html.padmode body > *:not(#pad):not(script){display:none!important}
 .stick .knob{position:absolute;left:50%;top:50%;width:38%;height:38%;margin:-19% 0 0 -19%;border-radius:50%;background:radial-gradient(circle at 35% 30%,#f2f5f8,#aeb8c4);box-shadow:0 6px 14px rgba(0,0,0,.5);will-change:transform}
 .stick.on .knob{background:radial-gradient(circle at 35% 30%,#ffe3a3,#ffb627)}
 .stick .lab{position:absolute;left:0;right:0;bottom:-22px;text-align:center;font-size:12px;color:var(--muted);white-space:nowrap}
+.pd-tip{position:fixed;left:50%;bottom:max(12px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:3;width:min(560px,calc(100% - 32px));background:#141f2e;border:1px solid var(--amber);border-radius:12px;padding:10px 12px;display:flex;gap:10px;align-items:flex-start;font-size:13.5px;line-height:1.5;box-shadow:0 10px 30px rgba(0,0,0,.6)}
+.pd-tip b{color:var(--amber)}
+.pd-tip button{flex:none;padding:3px 10px;font-size:13px}
 .pd-code{position:fixed;inset:0;display:grid;place-items:center;background:#0a0e13;padding:24px}
 .pd-code > div{display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center;max-width:340px}
 .pd-code input{font-family:var(--f-mono);font-size:32px;letter-spacing:.2em;text-align:center;width:9ch;padding:6px;border-radius:8px;border:1px solid var(--line);background:#0e1520;color:var(--text)}
+@media (max-height:360px) and (orientation:landscape){
+  .pd-msg{display:none} .pd-info{font-size:20px}
+  .pd-mid{gap:6px} .pd-btns{gap:5px} .pd-btns button{padding:6px 4px;font-size:13px} .pd-btns button.big{padding:8px;font-size:15px}
+  .pd-top{gap:6px} .pd-tools button{padding:3px 8px;font-size:12px}
+}
 @media (orientation:portrait){
   .pd-main{grid-template-columns:1fr 1fr;grid-template-areas:"M M" "L R";align-content:space-evenly}
-  .stick{width:min(42vw,40vh);justify-self:center}
+  .stick{justify-self:center}
 }
 #err{position:fixed;inset:auto 16px 16px;color:#ffd27a}
 </style>
@@ -561,6 +590,7 @@ html.padmode body > *:not(#pad):not(script){display:none!important}
     <div class="pd-tools">
       <button id="pdMode" type="button">Mode 2</button>
       <button id="pdSpring" type="button">油門回中：自動</button>
+      <button id="pdCodeBtn" type="button">連線碼</button>
       <button id="pdFull" type="button">全螢幕</button>
     </div>
   </div>
@@ -579,6 +609,7 @@ html.padmode body > *:not(#pad):not(script){display:none!important}
     </div>
     <div class="stick" id="stR"><div class="ring"></div><div class="knob"></div><span class="lab" id="labR"></span></div>
   </div>
+  <div class="pd-tip" id="pdTip" hidden><div id="pdTipText"></div><button type="button" id="pdTipX">知道了</button></div>
   <div class="pd-code" id="pdCode" hidden><div>
     <div class="brand" style="font-size:40px">SKY<span>FENCE</span></div>
     <div>輸入電腦畫面上的 6 位數連線碼</div>
@@ -2737,6 +2768,7 @@ window.SFLINK = {
   const ST = { L:{ x:0, y:0, id:null }, R:{ x:0, y:0, id:null } };
   const counts = { skill:0, start:0, cam:0, retry:0, swap:0 };
   let peer = null, conn = null, code = (new URLSearchParams(location.search).get('pad') || '').replace(/\D/g, '').slice(0, 6);
+  if (!code) code = store.get('code', '');   // home-screen launch: reuse the last code
   let retryT = 0, seq = 0;
 
   const springOn = () => spring === 'on' || (spring === 'auto' && hostFlight === 'assist');
@@ -2765,17 +2797,38 @@ window.SFLINK = {
     el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end); el.addEventListener('lostpointercapture', end);
     s.upd = upd; upd();
   }
+  // size both sticks to the space the browser actually leaves us (Safari bars, notches)
+  function fit() {
+    const main = document.querySelector('.pd-main'); if (!main) return;
+    const vw = window.visualViewport ? visualViewport.width : innerWidth, portrait = innerHeight > innerWidth;
+    const h = main.clientHeight - 26;
+    const size = portrait ? Math.min(vw * 0.42, h * 0.5) : Math.min(vw * 0.36, h);
+    pad.style.setProperty('--stick', Math.max(110, Math.floor(size)) + 'px');
+    ST.L.upd && ST.L.upd(); ST.R.upd && ST.R.upd();
+  }
   bindStick('L'); bindStick('R');
-  addEventListener('resize', () => { ST.L.upd(); ST.R.upd(); });
+  addEventListener('resize', fit); addEventListener('orientationchange', () => setTimeout(fit, 300));
+  if (window.visualViewport) visualViewport.addEventListener('resize', fit);
+  fit(); setTimeout(fit, 400);
   document.querySelectorAll('.pd-btns button').forEach(b => {
     b.addEventListener('pointerdown', e => { e.preventDefault(); counts[b.dataset.b]++; b.classList.add('hit'); setTimeout(() => b.classList.remove('hit'), 120); if (navigator.vibrate) navigator.vibrate(12); wake(); });
   });
   $('#pdMode').addEventListener('click', () => { mode = mode === '2' ? '1' : '2'; store.set('mode', mode); ST.L.y = ST.R.y = 0; ST.L.upd(); ST.R.upd(); labels(); });
   $('#pdSpring').addEventListener('click', () => { spring = spring === 'auto' ? 'on' : spring === 'on' ? 'off' : 'auto'; store.set('spring', spring); labels(); });
+  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const canFS = !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen) && !isIOS;
+  function tip(html) { $('#pdTipText').innerHTML = html; $('#pdTip').hidden = false; }
+  const IOS_TIP = '<b>iPhone 要全螢幕：</b>點 Safari 的<b>分享</b>按鈕 → <b>加入主畫面</b>（打開「以網頁 App 開啟」），之後從主畫面的「Skyfence 遙控」圖示開啟，就沒有網址列，也會記住連線碼。';
+  $('#pdTipX').addEventListener('click', () => { $('#pdTip').hidden = true; store.set('tipSeen', '1'); setTimeout(fit, 50); });
+  if (window.__STANDALONE) $('#pdFull').hidden = true;
+  else if (isIOS) { $('#pdFull').textContent = '全螢幕說明'; if (store.get('tipSeen', '') !== '1') tip(IOS_TIP); }
   $('#pdFull').addEventListener('click', async () => {
-    try { await document.documentElement.requestFullscreen(); } catch (e) {}
+    if (!canFS) { tip(IOS_TIP); return; }
+    try { await (document.documentElement.requestFullscreen ? document.documentElement.requestFullscreen({ navigationUI:'hide' }) : document.documentElement.webkitRequestFullscreen()); } catch (e) {}
     try { await screen.orientation.lock('landscape'); } catch (e) {}
+    setTimeout(fit, 300);
   });
+  $('#pdCodeBtn').addEventListener('click', () => { $('#pdIn').value = code; $('#pdCode').hidden = false; $('#pdIn').focus(); });
   let wl = null;
   async function wake() { if (wl || !navigator.wakeLock) return; try { wl = await navigator.wakeLock.request('screen'); wl.addEventListener('release', () => wl = null); } catch (e) {} }
   labels();
@@ -2795,10 +2848,12 @@ window.SFLINK = {
       navigator.vibrate(m.k === 'good' ? [30, 40, 60] : m.k === 'bad' ? 200 : 25);
     }
   }
+  function retry(ms) { clearTimeout(retryT); retryT = setTimeout(connect, ms); }
   function connect() {
     clearTimeout(retryT);
     if (!/^\d{6}$/.test(code)) { $('#pdCode').hidden = false; status('尚未連線', 'bad'); return; }
     $('#pdCode').hidden = true;
+    if (conn && conn.open) return;
     status('連線中…（' + code + '）');
     SFLINK.loadPeer().then(() => {
       if (!peer || peer.destroyed) {
@@ -2806,30 +2861,37 @@ window.SFLINK = {
         peer.on('error', e => {
           if (e.type === 'peer-unavailable') status('找不到電腦：確認連線碼，或電腦網頁是否開著', 'bad');
           else status('連線失敗：' + (e.type || e.message || e), 'bad');
-          retryT = setTimeout(connect, 3000);
+          retry(3000);
         });
         peer.on('disconnected', () => { try { peer.reconnect(); } catch (_) {} });
       }
       const go = () => {
-        if (conn) { try { conn.close(); } catch (_) {} }
-        conn = peer.connect(SFLINK.PREFIX + code, { reliable:false, serialization:'json' });
-        conn.on('open', () => { status('已連線 ' + code, 'ok'); conn.send({ t:'hi', ua:navigator.userAgent.slice(0, 60) }); });
-        conn.on('data', onData);
-        conn.on('close', () => { status('連線中斷，重新連線…', 'bad'); retryT = setTimeout(connect, 2000); });
-        conn.on('error', () => {});
+        const old = conn; conn = null;
+        if (old) { old.removeAllListeners && old.removeAllListeners(); try { old.close(); } catch (_) {} }
+        const c = peer.connect(SFLINK.PREFIX + code, { reliable:false, serialization:'json' });
+        conn = c;
+        const guard = setTimeout(() => { if (conn === c && !c.open) { status('連線逾時，重試中…', 'bad'); retry(500); } }, 9000);
+        c.on('open', () => { if (conn !== c) return; clearTimeout(guard); store.set('code', code); status('已連線 ' + code, 'ok'); c.send({ t:'hi', ua:navigator.userAgent.slice(0, 60) }); });
+        c.on('data', d => { if (conn === c) onData(d); });
+        c.on('close', () => { if (conn !== c) return; clearTimeout(guard); status('連線中斷，重新連線…', 'bad'); retry(1500); });
+        c.on('error', () => {});
       };
       if (peer.open) go(); else peer.once('open', go);
-    }).catch(err => { status('無法載入連線元件，請確認手機有網路', 'bad'); retryT = setTimeout(connect, 4000); });
+    }).catch(err => { status('無法載入連線元件，請確認手機有網路', 'bad'); retry(4000); });
   }
   setInterval(() => {
     if (conn && conn.open) { try { conn.send({ t:'s', q:++seq, c:channels().map(v => Math.round(v * 1000) / 1000), n:counts }); } catch (_) {} }
   }, 33);
   $('#pdGo').addEventListener('click', () => {
     code = $('#pdIn').value.replace(/\D/g, '').slice(0, 6);
-    if (code.length === 6) { history.replaceState(null, '', location.pathname + '?pad=' + code); connect(); }
+    if (code.length === 6) {
+      history.replaceState(null, '', location.pathname + '?pad=' + code);
+      if (conn) { const old = conn; conn = null; old.removeAllListeners && old.removeAllListeners(); try { old.close(); } catch (_) {} }
+      connect();
+    }
   });
   $('#pdIn').addEventListener('keydown', e => { if (e.key === 'Enter') $('#pdGo').click(); });
-  document.addEventListener('visibilitychange', () => { if (!document.hidden && (!conn || !conn.open)) connect(); });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { fit(); if (!conn || !conn.open) connect(); } });
   connect();
 })();
 </script>
